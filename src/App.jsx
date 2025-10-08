@@ -1,6 +1,6 @@
 import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { useAuth } from './components/AuthContext'
+import { useAuth } from './AuthContext'
 import Header from './components/Header'
 import Home from './pages/Home'
 import Contribute from './pages/Contribute'
@@ -35,7 +35,7 @@ class ErrorBoundary extends React.Component {
           <p>The app encountered an error. Please try refreshing the page.</p>
           <details style={{ marginTop: '1rem', textAlign: 'left', maxWidth: '600px', margin: '1rem auto' }}>
             <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>Error Details</summary>
-            <pre style={{ padding: '1rem', backgroundColor: '#f8f9fa', borderRadius: '4px', overflow: 'auto' }}>
+            <pre style={{ backgroundColor: '#f8f9fa', padding: '1rem', borderRadius: '4px', overflow: 'auto' }}>
               {this.state.error?.toString()}
             </pre>
           </details>
@@ -53,7 +53,7 @@ class ErrorBoundary extends React.Component {
 function LoadingFallback() {
   return (
     <div style={{ padding: '2rem', textAlign: 'center' }}>
-      Loading...
+      <p>Loading...</p>
     </div>
   )
 }
@@ -115,7 +115,7 @@ export default function App() {
           </ErrorBoundary>
         </main>
         <footer className="site-footer">
-          Made with ☕ by Pilani peeps — be chill, be kind. • v0.1 (MVP)
+          <p>Made with ☕ by Pilani peeps — be chill, be kind. • v0.1 (MVP)</p>
         </footer>
       </div>
     </ErrorBoundary>
