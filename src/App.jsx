@@ -2,10 +2,10 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import Header from './components/Header';
 import Home from './pages/Home';
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import ProposeLocation from './pages/ProposeLocation';
-import AdminReview from './pages/AdminReview';
+import Login from './components/Login';
+import Dashboard from './components/Dashboard';
+import ProposeLocation from './components/ProposeLocation';
+import AdminReview from './components/AdminReview';
 import Admin from './pages/Admin';
 import { AuthProvider } from './AuthContext';
 
