@@ -1,9 +1,14 @@
 import React from 'react'
-import { Routes, Route, Link } from 'react-router-dom'
+import { Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom'
+import { useAuth } from './components/AuthContext'
 import Home from './pages/Home'
 import Contribute from './pages/Contribute'
 import About from './pages/About'
 import Admin from './pages/Admin'
+import Login from './components/Login'
+import Signup from './components/Signup'
+import Dashboard from './components/Dashboard'
+import ProposeLocation from './components/ProposeLocation'
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component {
@@ -51,25 +56,71 @@ function LoadingFallback() {
   )
 }
 
+// Header component with authentication
+function AppHeader() {
+  const { currentUser, logout } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      navigate('/login')
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
+  }
+
+  return (
+    <header className="site-header">
+      <div className="brand">
+        <img src="/logo.svg" alt="logo" className="logo" onError={(e) => e.target.style.display = 'none'} />
+        <div>
+          <h1>Pilani‑Trails</h1>
+          <div className="tag">Drop a pin, flex your findz ✨</div>
+        </div>
+      </div>
+      <nav className="nav">
+        <Link to="/">Map</Link>
+        <Link to="/contribute">Contribute</Link>
+        <Link to="/about">About</Link>
+        <Link to="/admin">Admin</Link>
+        {currentUser ? (
+          <>
+            <Link to="/dashboard">Dashboard</Link>
+            <button onClick={handleLogout} style={{ 
+              background: 'none', 
+              border: '1px solid currentColor', 
+              color: 'inherit', 
+              padding: '0.25rem 0.75rem', 
+              borderRadius: '4px', 
+              cursor: 'pointer',
+              fontSize: 'inherit'
+            }}>
+              Logout
+            </button>
+          </>
+        ) : (
+          <>
+            <Link to="/login">Login</Link>
+            <Link to="/signup">Signup</Link>
+          </>
+        )}
+      </nav>
+    </header>
+  )
+}
+
+// Protected Route wrapper
+function ProtectedRoute({ children }) {
+  const { currentUser } = useAuth()
+  return currentUser ? children : <Navigate to="/login" replace />
+}
+
 export default function App() {
   return (
     <ErrorBoundary>
       <div className="app-root">
-        <header className="site-header">
-          <div className="brand">
-            <img src="/logo.svg" alt="logo" className="logo" onError={(e) => e.target.style.display = 'none'} />
-            <div>
-              <h1>Pilani‑Trails</h1>
-              <div className="tag">Drop a pin, flex your findz ✨</div>
-            </div>
-          </div>
-          <nav className="nav">
-            <Link to="/">Map</Link>
-            <Link to="/contribute">Contribute</Link>
-            <Link to="/about">About</Link>
-            <Link to="/admin">Admin</Link>
-          </nav>
-        </header>
+        <AppHeader />
         <main className="main">
           <ErrorBoundary>
             <React.Suspense fallback={<LoadingFallback />}>
@@ -77,7 +128,23 @@ export default function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/contribute" element={<Contribute />} />
                 <Route path="/about" element={<About />} />
-                <Route path="/admin" element={<Admin />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/propose" element={
+                  <ProtectedRoute>
+                    <ProposeLocation />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin" element={
+                  <ProtectedRoute>
+                    <Admin />
+                  </ProtectedRoute>
+                } />
               </Routes>
             </React.Suspense>
           </ErrorBoundary>
