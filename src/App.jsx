@@ -35,7 +35,7 @@ class ErrorBoundary extends React.Component {
           <p>The app encountered an error. Please try refreshing the page.</p>
           <details style={{ marginTop: '1rem', textAlign: 'left', maxWidth: '600px', margin: '1rem auto' }}>
             <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>Error Details</summary>
-            <pre style={{ backgroundColor: '#f5f5f5', padding: '1rem', borderRadius: '4px', overflow: 'auto' }}>
+            <pre style={{ backgroundColor: '#f4f4f4', padding: '1rem', borderRadius: '4px', overflow: 'auto' }}>
               {this.state.error?.toString()}
             </pre>
           </details>
