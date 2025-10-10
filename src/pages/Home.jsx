@@ -13,11 +13,9 @@ function usePlaces() {
       return placesSeed
     } catch (e) { return [] }
   })
-
   useEffect(() => {
     localStorage.setItem(key, JSON.stringify(places))
   }, [places])
-
   return [places, setPlaces]
 }
 
@@ -35,18 +33,8 @@ export default function Home() {
 
   return (
     <div className="home-grid">
-      <Sidebar
-        places={filtered}
-        filter={filter}
-        setFilter={setFilter}
-        selected={selected}
-        setSelected={setSelected}
-      />
-      <MapView
-        places={filtered}
-        selected={selected}
-        setSelected={setSelected}
-      />
+      <Sidebar filter={filter} setFilter={setFilter} places={places} setPlaces={setPlaces} selected={selected} setSelected={setSelected} />
+      <MapView places={filtered} selected={selected} setSelected={setSelected} />
     </div>
   )
 }
