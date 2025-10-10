@@ -35,7 +35,7 @@ export default function Contribute(){
           </select>
         </label>
         <label>Description
-          <textarea value={form.desc} onChange={e => setForm({...form, desc: e.target.value})} rows="3" />
+          <textarea value={form.desc} onChange={e => setForm({...form, desc: e.target.value})} />
         </label>
         <label>Image URL
           <input value={form.img} onChange={e => setForm({...form, img: e.target.value})} placeholder="https://..." />
@@ -46,20 +46,9 @@ export default function Contribute(){
         <label>Longitude
           <input type="number" step="any" value={form.lng} onChange={e => setForm({...form, lng: e.target.value})} required />
         </label>
-        <button type="submit">Add Place</button>
         <button type="button" onClick={autofillFromMap}>Get coords from map</button>
+        <button type="submit">Add Spot</button>
       </form>
-
-      <hr />
-      <h3>Your Contributions ({places.filter(p => p.source === 'user').length})</h3>
-      <ul className="user-places-list">
-        {places.filter(p => p.source === 'user').map(p => (
-          <li key={p.id}>
-            <strong>{p.name}</strong> ({p.category}) — {p.votes} votes
-            <button onClick={() => setPlaces(places.filter(x => x.id !== p.id))}>Remove</button>
-          </li>
-        ))}
-      </ul>
     </div>
   )
 }
