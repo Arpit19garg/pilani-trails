@@ -1,5 +1,4 @@
 name: Deploy Pilani Trails
-
 on:
   push:
     branches:
@@ -14,20 +13,20 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-
+      
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
-
+      
       - name: Install dependencies
         run: npm install
-
+      
       - name: Build project
         env:
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
         run: npm run build
-
+      
       - name: Commit and push docs to main
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
@@ -35,9 +34,3 @@ jobs:
           git add docs/
           git diff --staged --quiet || git commit -m "Update docs/ with production build"
           git push
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
