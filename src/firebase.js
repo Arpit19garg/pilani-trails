@@ -19,6 +19,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const analytics = getAnalytics(app);
+
+// Initialize Analytics conditionally (only if measurement ID is available)
+let analytics = null;
+try {
+  if (import.meta.env.VITE_FIREBASE_MEASUREMENT_ID) {
+    analytics = getAnalytics(app);
+  }
+} catch (error) {
+  console.warn('Firebase Analytics initialization failed:', error);
+}
 
 export { app, auth, db, analytics };
