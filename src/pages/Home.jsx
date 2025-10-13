@@ -23,14 +23,12 @@ export default function Home() {
   const [places, setPlaces] = usePlaces()
   const [filter, setFilter] = useState({ q: '', category: 'All' })
   const [selected, setSelected] = useState(null)
-
   const filtered = places.filter(p => {
     const q = filter.q.toLowerCase()
     const matchesQ = !q || p.name.toLowerCase().includes(q) || (p.desc || '').toLowerCase().includes(q)
     const matchesCat = filter.category === 'All' || p.category === filter.category
     return matchesQ && matchesCat
   })
-
   return (
     <div className="home-grid">
       <Sidebar filter={filter} setFilter={setFilter} places={places} setPlaces={setPlaces} selected={selected} setSelected={setSelected} />
