@@ -6,7 +6,7 @@
   "homepage": "https://arpit19garg.github.io/pilani-trails/",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && cp -r dist/* docs/",
+    "build": "vite build",
     "preview": "vite preview",
     "deploy": "gh-pages -d docs"
   },
