@@ -4,7 +4,9 @@ export default function About() {
   return (
     <div className="about-page">
       <h2>About Pilani-Trails</h2>
-      <p>This is a student-made, community-driven map for Pilani town. We wanted a playful, chill place where freshers and OGs can share recs — from the best samosa stall to the 24x7 print joint.</p>
+      <p>
+        This is a student-made, community-driven map for Pilani town. We wanted a playful, chill place where freshers and OGs can share recs — from the best samosa stall to the 24x7 print joint.
+      </p>
       <h3>Why this exists</h3>
       <ul>
         <li>College doesn't publish a neat guide; we do.</li>
@@ -17,7 +19,9 @@ export default function About() {
         <li>Share the app with your batch — upvotes = cred.</li>
         <li>If you want the data public/publicly hosted, we can later add a backend.</li>
       </ol>
-      <p className="muted">Made with ❤️ by students. Not affiliated with BITS Pilani.</p>
+      <p className="muted">
+        Made with ❤️ by students. Not affiliated with BITS Pilani.
+      </p>
     </div>
   )
 }
