@@ -39,50 +39,84 @@ export default function Contribute() {
   }
 
   function autofillFromMap() {
-    alert('Tip: To capture coords, open the map and click a location to create a quick pin — then edit its coordinates here.')
+    // stub: in real, get map pin from context
+    alert('If you just clicked a pin on the map, we'd auto-fill lat/lng here.')
   }
 
   return (
     <div className="contribute-page">
-      <h2>Contribute a spot — be the plug 🤙</h2>
+      <h2>Contribute a Place</h2>
+      <p>Help newbies find hidden gems.</p>
       <p className="muted">
-        Add details, drop an image link, and tell folks why this place slaps.
+        If you want official data or admin features, check out the Admin page.
       </p>
       <form className="contrib-form" onSubmit={submit}>
         <label>
-          Name
-          <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
+          Name*
+          <input
+            required
+            value={form.name}
+            onChange={e => setForm(prev => ({ ...prev, name: e.target.value }))}
+            placeholder="e.g. 24x7 Print Shop"
+          />
         </label>
         <label>
           Category
-          <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
+          <select
+            value={form.category}
+            onChange={e => setForm(prev => ({ ...prev, category: e.target.value }))}
+          >
             <option>Food</option>
-            <option>Cafe</option>
-            <option>Stationery</option>
-            <option>Services</option>
-            <option>Outdoors</option>
-            <option>Entertainment</option>
-            <option>Spiritual</option>
+            <option>Coffee/Tea</option>
+            <option>Groceries</option>
+            <option>Study</option>
+            <option>Hospital</option>
+            <option>Fun</option>
+            <option>Utilities</option>
           </select>
         </label>
         <label>
           Description
-          <input value={form.desc} onChange={e => setForm({ ...form, desc: e.target.value })} />
+          <textarea
+            value={form.desc}
+            onChange={e => setForm(prev => ({ ...prev, desc: e.target.value }))}
+            placeholder="What makes it special?"
+          />
         </label>
         <label>
-          Image URL
-          <input value={form.img} onChange={e => setForm({ ...form, img: e.target.value })} placeholder="https://..." />
+          Image URL (optional)
+          <input
+            value={form.img}
+            onChange={e => setForm(prev => ({ ...prev, img: e.target.value }))}
+            placeholder="https://..."
+          />
         </label>
         <label>
-          Latitude
-          <input value={form.lat} onChange={e => setForm({ ...form, lat: e.target.value })} required />
+          Latitude*
+          <input
+            required
+            type="number"
+            step="any"
+            value={form.lat}
+            onChange={e => setForm(prev => ({ ...prev, lat: e.target.value }))}
+          />
         </label>
         <label>
-          Longitude
-          <input value={form.lng} onChange={e => setForm({ ...form, lng: e.target.value })} required />
+          Longitude*
+          <input
+            required
+            type="number"
+            step="any"
+            value={form.lng}
+            onChange={e => setForm(prev => ({ ...prev, lng: e.target.value }))}
+          />
         </label>
-        <button type="button" onClick={autofillFromMap}>How to pick coords?</button>
-        <button type="submit">Add Spot</button>
+        <button className="btn ghost" type="button" onClick={autofillFromMap}>
+          Autofill coords from map click
+        </button>
+        <button className="btn" type="submit">
+          Submit
+        </button>
       </form>
     </div>
   )
