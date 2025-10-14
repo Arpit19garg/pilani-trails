@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, doc, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
-import { useAuth } from './AuthContext';
+import { useAuth } from '../AuthContext';
 import './AdminReview.css';
 
 const AdminReview = () => {
