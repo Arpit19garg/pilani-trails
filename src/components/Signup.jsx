@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { useAuth } from './AuthContext';
+import { useAuth } from '../AuthContext';
 import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useNavigate, Link } from 'react-router-dom';
-import './Auth.css';
+import '../Auth.css';
 
 const Signup = () => {
   const [email, setEmail] = useState('');
