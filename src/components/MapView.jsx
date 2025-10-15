@@ -12,7 +12,7 @@ L.Icon.Default.mergeOptions({
 })
 
 // Component to handle map clicks
-function MapClickHandler({ allPlaces, allPlacesSetter }) {
+function MapClickHandler({ allPlaces = [], allPlacesSetter = () => {} }) {
   useMapEvents({
     click(e) {
       const lat = e.latlng.lat
@@ -30,7 +30,7 @@ function MapClickHandler({ allPlaces, allPlacesSetter }) {
           votes: 0, 
           source: 'user' 
         }
-        const copy = [...allPlaces, item]
+        const copy = [...(Array.isArray(allPlaces) ? allPlaces : []), item]
         allPlacesSetter(copy)
         alert('Yo! Your pin is added locally. Go to Contribute page to add details & pics.')
       }
@@ -60,7 +60,7 @@ export default function MapView({ places, onMarkerClick, allPlaces, allPlacesSet
         <MapClickHandler allPlaces={allPlaces} allPlacesSetter={allPlacesSetter} />
         
         {/* Render markers for all places */}
-        {places.map((place) => (
+        {(Array.isArray(places) ? places : []).map((place) => (
           <Marker 
             key={place.id} 
             position={[place.lat, place.lng]}
