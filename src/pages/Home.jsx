@@ -8,16 +8,27 @@ function usePlaces() {
   const [places, setPlaces] = useState(() => {
     try {
       const raw = localStorage.getItem(key);
-      if (raw) return JSON.parse(raw);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        // Ensure parsed is an array; otherwise fallback to seed
+        if (Array.isArray(parsed) && parsed.length >= 0) return parsed;
+      }
+      // if nothing valid in storage, initialize with seed
       localStorage.setItem(key, JSON.stringify(placesSeed));
       return placesSeed;
     } catch (e) {
+      // On parse error, return empty array (safe fallback)
+      console.warn('usePlaces: failed to read places from localStorage', e);
       return [];
     }
   });
 
   useEffect(() => {
-    localStorage.setItem(key, JSON.stringify(places));
+    try {
+      localStorage.setItem(key, JSON.stringify(places));
+    } catch (e) {
+      console.warn('usePlaces: failed to save places to localStorage', e);
+    }
   }, [places]);
 
   return [places, setPlaces];
