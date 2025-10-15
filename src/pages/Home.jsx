@@ -49,6 +49,9 @@ export default function Home() {
     return matchesQ && matchesCat;
   });
 
+   // inside Home() above return...
+  const categories = ['All', ...Array.from(new Set((Array.isArray(places) ? places : []).map(p => p.category || 'Other')))];
+
   return (
     <div className="home-grid">
       <Sidebar
@@ -58,11 +61,18 @@ export default function Home() {
         setPlaces={setPlaces}
         selected={selected}
         setSelected={setSelected}
+        // added props
+        categories={categories}
+        onFilter={setFilter}
+        onSelect={setSelected}
       />
       <MapView
         places={filtered}
         selected={selected}
         setSelected={setSelected}
+        // if MapView needs the full places list for adding pins, pass them too:
+        allPlaces={places}
+        allPlacesSetter={setPlaces}
       />
     </div>
   );
