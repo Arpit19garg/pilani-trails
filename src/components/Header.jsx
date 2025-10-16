@@ -1,13 +1,16 @@
-import React from 'react';
+// src/components/Header.jsx
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import './Header.css';
+import { Menu, X } from 'lucide-react';
 
 const Header = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -20,32 +23,39 @@ const Header = () => {
 
   return (
     <header className="app-header">
-      <nav className="header-nav">
+      <nav className="nav-container">
         <div className="nav-brand">
-          <Link to="/">Pilani Trails</Link>
+          <Link to="/" className="brand-link">Pilani Trails</Link>
         </div>
-        <ul className="nav-links">
+
+        {/* Hamburger menu (mobile) */}
+        <button
+          className="menu-toggle"
+          onClick={() => setMenuOpen(!menuOpen)}
+        >
+          {menuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+
+        <ul className={`nav-links ${menuOpen ? 'active' : ''}`}>
           <li><Link to="/">Home</Link></li>
-          {!currentUser ? (
-            <>
-              <li><Link to="/login">Login</Link></li>
-              <li><Link to="/signup">Signup</Link></li>
-            </>
-          ) : (
+
+          {currentUser ? (
             <>
               <li><Link to="/dashboard">Dashboard</Link></li>
               <li><Link to="/propose">Propose Location</Link></li>
-
-              {/* ✅ FIXED: Show only for admin users */}
-              {currentUser?.role === 'admin' && (
+              {currentUser.role === 'admin' && (
                 <li><Link to="/admin-review">Admin Review</Link></li>
               )}
-
               <li>
                 <button onClick={handleLogout} className="logout-btn">
                   Logout
                 </button>
               </li>
+            </>
+          ) : (
+            <>
+              <li><Link to="/login" className="btn-outline">Login</Link></li>
+              <li><Link to="/signup" className="btn-primary">Signup</Link></li>
             </>
           )}
         </ul>
