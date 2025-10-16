@@ -1,140 +1,135 @@
-/* Header Component Styles */
+/* src/components/Header.css */
 
-.header {
-  background-color: #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 1rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.app-header {
+  background-color: #fff;
+  border-bottom: 1px solid #eee;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   position: sticky;
   top: 0;
   z-index: 1000;
 }
 
-.header-logo {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #333;
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-brand .brand-link {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #2b2b2b;
   text-decoration: none;
+}
+
+.nav-links {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.header-logo:hover {
-  color: #007bff;
-}
-
-.header-nav {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-}
-
-.header-nav a {
-  color: #333;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.3s ease;
-}
-
-.header-nav a:hover {
-  color: #007bff;
-}
-
-.header-nav a.active {
-  color: #007bff;
-  border-bottom: 2px solid #007bff;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
   gap: 1rem;
+  align-items: center;
+  list-style: none;
+  transition: all 0.3s ease-in-out;
 }
 
-.header-user {
+.nav-links li {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
 }
 
-.header-user-name {
-  font-weight: 500;
+.nav-links a {
   color: #333;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
 }
 
-.header-button {
-  padding: 0.5rem 1rem;
+.nav-links a:hover {
+  color: #0077ff;
+}
+
+.logout-btn {
+  background-color: #ef4444;
+  color: white;
   border: none;
-  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.2s;
 }
 
-.header-button-primary {
-  background-color: #007bff;
+.logout-btn:hover {
+  background-color: #dc2626;
+}
+
+/* Button styles */
+.btn-primary {
+  background-color: #0077ff;
+  color: white;
+  padding: 0.45rem 0.9rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.btn-primary:hover {
+  background-color: #005dd1;
+}
+
+.btn-outline {
+  border: 1px solid #0077ff;
+  color: #0077ff;
+  padding: 0.45rem 0.9rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-outline:hover {
+  background-color: #0077ff;
   color: white;
 }
 
-.header-button-primary:hover {
-  background-color: #0056b3;
-}
-
-.header-button-secondary {
-  background-color: transparent;
-  color: #333;
-  border: 1px solid #ddd;
-}
-
-.header-button-secondary:hover {
-  background-color: #f8f9fa;
-}
-
-.header-menu-toggle {
+/* Mobile responsiveness */
+.menu-toggle {
   display: none;
   background: none;
   border: none;
-  font-size: 1.5rem;
   cursor: pointer;
   color: #333;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
-  .header {
-    padding: 1rem;
-  }
-
-  .header-nav {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background-color: white;
-    flex-direction: column;
-    gap: 0;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    display: none;
-  }
-
-  .header-nav.active {
-    display: flex;
-  }
-
-  .header-nav a {
-    padding: 1rem;
-    width: 100%;
-    border-bottom: 1px solid #eee;
-  }
-
-  .header-menu-toggle {
+  .menu-toggle {
     display: block;
   }
 
-  .header-actions {
-    gap: 0.5rem;
+  .nav-links {
+    position: absolute;
+    top: 60px;
+    right: 0;
+    background-color: #fff;
+    flex-direction: column;
+    width: 200px;
+    padding: 1rem;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transform: translateX(100%);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .nav-links.active {
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .nav-links li {
+    width: 100%;
+    text-align: right;
   }
 }
