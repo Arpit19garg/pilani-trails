@@ -34,10 +34,13 @@ const Header = () => {
           ) : (
             <>
               <li><Link to="/dashboard">Dashboard</Link></li>
-              <li><Link to="/propose-location">Propose Location</Link></li>
-              {currentUser.isAdmin && (
+              <li><Link to="/propose">Propose Location</Link></li>
+
+              {/* ✅ FIXED: Show only for admin users */}
+              {currentUser?.role === 'admin' && (
                 <li><Link to="/admin-review">Admin Review</Link></li>
               )}
+
               <li>
                 <button onClick={handleLogout} className="logout-btn">
                   Logout
