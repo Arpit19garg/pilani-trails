@@ -8,13 +8,12 @@ import {
   signInWithPopup,
   updateProfile
 } from 'firebase/auth';
-import { auth } from './firebase';
+import { auth, db } from './firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 export const AuthContext = createContext({});
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -30,9 +29,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Login with email and password
-  const login = (email, password) => {
-    return signInWithEmailAndPassword(auth, email, password);
-  };
+  const login = (email, password) => signInWithEmailAndPassword(auth, email, password);
 
   // Sign in with Google
   const signInWithGoogle = () => {
@@ -41,13 +38,27 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Logout
-  const logout = () => {
-    return signOut(auth);
-  };
+  const logout = () => signOut(auth);
 
+  // Watch for auth state changes
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          // Try to load extra data (like role) from Firestore
+          const userRef = doc(db, 'users', user.uid);
+          const snap = await getDoc(userRef);
+          const userData = snap.exists() ? snap.data() : {};
+
+          // Merge role info into user object
+          setCurrentUser({ ...user, ...userData });
+        } catch (err) {
+          console.error('Error loading user data from Firestore:', err);
+          setCurrentUser(user);
+        }
+      } else {
+        setCurrentUser(null);
+      }
       setLoading(false);
     });
 
