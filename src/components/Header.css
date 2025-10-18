@@ -38,7 +38,7 @@
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.25rem;
   list-style: none;
 }
 
@@ -51,16 +51,26 @@
   text-decoration: none;
   color: #333;
   font-weight: 500;
-  transition: color 0.3s ease;
   font-size: 1rem;
   background: none;
   border: none;
   cursor: pointer;
+  transition: all 0.2s ease-in-out;
 }
 
 .nav-links a:hover,
 .logout-btn:hover {
   color: #007bff;
+  transform: translateY(-1px);
+}
+
+/* Highlight admin links */
+.nav-links a[href*="admin"] {
+  color: #d9534f;
+}
+
+.nav-links a[href*="admin"]:hover {
+  color: #b52b27;
 }
 
 /* Responsive Styles */
@@ -72,6 +82,7 @@
   .nav-links {
     display: none;
     flex-direction: column;
+    align-items: center;
     width: 100%;
     position: absolute;
     top: 64px;
@@ -88,7 +99,7 @@
   .nav-links li {
     text-align: center;
     width: 100%;
-    padding: 0.5rem 0;
+    padding: 0.75rem 0;
   }
 
   .nav-links a,
