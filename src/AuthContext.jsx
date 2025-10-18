@@ -40,23 +40,25 @@ export const AuthProvider = ({ children }) => {
   // Logout
   const logout = () => signOut(auth);
 
-  // Watch for auth state changes
+  // Watch for auth state changes and merge role data from Firestore
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
-          // Try to load extra data (like role) from Firestore
+          console.log('[AuthContext] user signed in:', user.email, 'uid:', user.uid);
           const userRef = doc(db, 'users', user.uid);
           const snap = await getDoc(userRef);
-          const userData = snap.exists() ? snap.data() : {};
+          const userData = snap && snap.exists() ? snap.data() : {};
+          console.log('[AuthContext] userData from Firestore:', userData);
 
-          // Merge role info into user object
+          // Merge role/flags from Firestore into the user object
           setCurrentUser({ ...user, ...userData });
         } catch (err) {
-          console.error('Error loading user data from Firestore:', err);
+          console.error('[AuthContext] Error loading user data from Firestore:', err);
           setCurrentUser(user);
         }
       } else {
+        console.log('[AuthContext] no user logged in');
         setCurrentUser(null);
       }
       setLoading(false);
