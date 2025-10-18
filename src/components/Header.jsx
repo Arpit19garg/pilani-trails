@@ -10,6 +10,9 @@ const Header = () => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // debug: show currentUser in console so you can verify role merging
+  console.log("[Header] currentUser:", currentUser);
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -19,24 +22,26 @@ const Header = () => {
     }
   };
 
-  const toggleMenu = () => setMenuOpen(!menuOpen);
+  const toggleMenu = () => setMenuOpen((s) => !s);
 
+  // Robust admin check: accept role 'admin', isAdmin flag, or specific email (optional)
   const isAdmin =
     currentUser &&
-    (currentUser.email === "admin@pilanitrails.com" ||
-      currentUser.isAdmin === true);
+    (currentUser.role === "admin" ||
+      currentUser.isAdmin === true ||
+      currentUser.email === "admin@pilanitrails.com");
 
   return (
     <header className="app-header">
       <nav className="header-nav">
-        {/* Logo / Brand */}
+        {/* Brand */}
         <div className="nav-brand">
           <Link to="/" className="brand-link" onClick={() => setMenuOpen(false)}>
             Pilani Trails
           </Link>
         </div>
 
-        {/* Mobile menu button */}
+        {/* Mobile toggle */}
         <button
           className="menu-toggle"
           onClick={toggleMenu}
@@ -56,7 +61,7 @@ const Header = () => {
           )}
         </button>
 
-        {/* Navigation Links */}
+        {/* Links */}
         <ul className={`nav-links ${menuOpen ? "open" : ""}`}>
           <li>
             <Link to="/" onClick={() => setMenuOpen(false)}>Home</Link>
@@ -79,20 +84,21 @@ const Header = () => {
               <li>
                 <Link to="/propose" onClick={() => setMenuOpen(false)}>Propose Location</Link>
               </li>
+
+              {/* admin-only links */}
               {isAdmin && (
                 <>
                   <li>
                     <Link to="/admin/review" onClick={() => setMenuOpen(false)}>Admin Review</Link>
                   </li>
                   <li>
-                    <Link to="/admin" onClick={() => setMenuOpen(false)}>Admin</Link>
+                    <Link to="/admin" onClick={() => setMenuOpen(false)}>Admin Panel</Link>
                   </li>
                 </>
               )}
+
               <li>
-                <button onClick={handleLogout} className="logout-btn">
-                  Logout
-                </button>
+                <button onClick={handleLogout} className="logout-btn">Logout</button>
               </li>
             </>
           )}
