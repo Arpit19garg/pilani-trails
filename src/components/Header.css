@@ -11,29 +11,67 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 1.5rem;
+  padding: 0.6rem 1rem;
   max-width: 1200px;
   margin: 0 auto;
 }
 
-.nav-brand .brand-link {
-  font-size: 1.5rem;
+/* Brand container (keeps logo/text vertically centered) */
+.nav-brand,
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* If you keep the text brand (fallback), style it nicely */
+.nav-brand .brand-link,
+.brand-text-fallback {
+  font-size: 1.25rem;
   font-weight: 700;
   color: #2b6cb0; /* soft blue */
   text-decoration: none;
-  transition: color 0.3s ease;
+  transition: color 0.25s ease;
 }
 
-.nav-brand .brand-link:hover {
+/* Hover state for the brand text */
+.nav-brand .brand-link:hover,
+.brand-text-fallback:hover {
   color: #255a9c;
 }
 
+/* Logo image styling */
+.brand-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.brand-logo {
+  height: 52px;      /* adjust size as needed */
+  width: auto;
+  border-radius: 6px;
+  object-fit: contain;
+  display: block;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+/* Small screens: slightly smaller logo */
+@media (max-width: 480px) {
+  .brand-logo {
+    height: 40px;
+  }
+}
+
+/* Menu toggle button (mobile) */
 .menu-toggle {
   display: none;
   background: none;
   border: none;
   cursor: pointer;
   color: #333;
+  font-size: 1.5rem;
+  line-height: 1;
 }
 
 /* Desktop nav */
@@ -64,6 +102,7 @@
   transition: all 0.18s ease-in-out;
 }
 
+/* Hover states */
 .nav-links a:hover,
 .logout-btn:hover {
   color: #2b6cb0;
@@ -80,7 +119,22 @@
   color: #8a2f2f;
 }
 
-/* Mobile */
+/* Logout button style */
+.logout-btn {
+  background: #e74c3c;
+  color: #fff;
+  padding: 0.35rem 0.7rem;
+  border-radius: 6px;
+  border: none;
+  font-weight: 600;
+  transition: background 0.18s ease;
+}
+
+.logout-btn:hover {
+  background: #c0392b;
+}
+
+/* Responsive behavior */
 @media (max-width: 768px) {
   .menu-toggle {
     display: block;
@@ -92,7 +146,7 @@
     align-items: center;
     width: 100%;
     position: absolute;
-    top: 64px;
+    top: 68px;
     left: 0;
     background: #fff;
     padding: 0.75rem 0;
@@ -115,4 +169,13 @@
     width: 100%;
     display: inline-block;
   }
+}
+
+/* Accessibility focus states */
+.nav-links a:focus,
+.logout-btn:focus,
+.menu-toggle:focus,
+.brand-link:focus {
+  outline: 3px solid rgba(37, 90, 156, 0.12);
+  outline-offset: 2px;
 }
