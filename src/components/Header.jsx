@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { signOut } from "firebase/auth";
@@ -31,13 +31,51 @@ const Header = () => {
       currentUser.isAdmin === true ||
       currentUser.email === "admin@pilanitrails.com");
 
+  // Logo element fallback logic:
+  // Try a few likely paths so the logo works whether it's in docs/assets or assets.
+  const logoRef = useRef(null);
+  const logoCandidatePaths = [
+    "/pilani-trails/assets/logo.jpg",    // typical Vite-built path when base='/pilani-trails/'
+    "/pilani-trails/docs/assets/logo.jpg",
+    "/docs/assets/logo.jpg",
+    "/assets/logo.jpg",
+    "/docs/logo.jpg",
+    "/logo.jpg",
+  ];
+  let candidateIndex = 0;
+  const onLogoError = (e) => {
+    candidateIndex += 1;
+    const next = logoCandidatePaths[candidateIndex];
+    if (next) {
+      e.target.src = next;
+    } else {
+      // last fallback: hide image and show text fallback
+      e.target.style.display = "none";
+      const fallback = document.createElement("span");
+      fallback.textContent = "Pilani Trails";
+      fallback.className = "brand-text-fallback";
+      e.target.parentNode && e.target.parentNode.appendChild(fallback);
+    }
+  };
+
   return (
     <header className="app-header">
       <nav className="header-nav">
         {/* Brand */}
         <div className="nav-brand">
-          <Link to="/" className="brand-link" onClick={() => setMenuOpen(false)}>
-            Pilani Trails
+          <Link
+            to="/"
+            className="brand-link"
+            onClick={() => setMenuOpen(false)}
+            aria-label="Pilani Trails home"
+          >
+            <img
+              ref={logoRef}
+              src={logoCandidatePaths[0]}
+              alt="Pilani Trails"
+              className="brand-logo"
+              onError={onLogoError}
+            />
           </Link>
         </div>
 
@@ -48,12 +86,12 @@ const Header = () => {
           aria-label="Toggle menu"
         >
           {menuOpen ? (
-            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" stroke="currentColor" fill="none" strokeWidth="2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" stroke="currentColor" fill="none" strokeWidth="2" aria-hidden>
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" stroke="currentColor" fill="none" strokeWidth="2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" stroke="currentColor" fill="none" strokeWidth="2" aria-hidden>
               <line x1="3" y1="6" x2="21" y2="6" />
               <line x1="3" y1="12" x2="21" y2="12" />
               <line x1="3" y1="18" x2="21" y2="18" />
