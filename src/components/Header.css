@@ -5,25 +5,40 @@
   top: 0;
   z-index: 1000;
   width: 100%;
-  padding: 0; /* ✅ ensures no internal spacing */
 }
 
+/* Make header-nav a positioned container so we can place the logo absolutely */
 .header-nav {
   display: flex;
-  align-items: stretch; /* ✅ makes logo stretch full height */
+  align-items: center;
   justify-content: space-between;
-  padding: 0; /* ✅ remove side padding to let logo touch edges */
+  padding: 0.6rem 1rem;
   max-width: 1200px;
   margin: 0 auto;
+  position: relative; /* <-- ADDED: needed so .nav-brand can be absolute relative to this */
 }
 
 /* Brand container (keeps logo/text vertically centered) */
 .nav-brand,
 .nav-left {
   display: flex;
-  align-items: stretch; /* ✅ stretch full height */
-  gap: 0;
-  margin: 0;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* NEW: pull the brand out of normal flow and place it at the extreme left of the header.
+   This lets the logo visually touch the viewport left edge while keeping the centered
+   max-width nav content intact. */
+.nav-brand {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: flex-end; /* hug bottom of header */
+  padding-left: 12px; /* small inner padding so logo isn't flush against the browser chrome */
+  box-sizing: border-box;
+  z-index: 10;
 }
 
 /* If you keep the text brand (fallback), style it nicely */
@@ -31,7 +46,7 @@
 .brand-text-fallback {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #2b6cb0;
+  color: #2b6cb0; /* soft blue */
   text-decoration: none;
   transition: color 0.25s ease;
 }
@@ -42,58 +57,48 @@
   color: #255a9c;
 }
 
-/* ✅ Logo image styling – now hugs left and bottom edges */
+/* Logo image styling */
+/* Keep brand-link display as inline-flex so the image sits inside nicely */
 .brand-link {
   display: inline-flex;
-  align-items: stretch;
-  justify-content: flex-start;
+  align-items: center;
   text-decoration: none;
-  height: 100%;
-  margin: 0;
   padding: 0;
+  margin: 0;
 }
 
-/* ✅ Logo tweaks for perfect alignment */
+/* Increase logo size slightly and ensure it hugs the bottom of the header */
 .brand-logo {
-  height: 70px; /* increased for better visual weight */
+  height: 64px;      /* slightly larger for visual weight */
   width: auto;
-  border-radius: 0;
-  object-fit: cover;
+  border-radius: 6px;
+  object-fit: contain;
   display: block;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
   margin: 0;
   padding: 0;
-  box-shadow: none;
-  position: relative;
-  top: 2px; /* tiny vertical adjust to hug bottom edge */
+  align-self: flex-end; /* hug bottom */
 }
 
 /* Small screens: slightly smaller logo */
 @media (max-width: 480px) {
   .brand-logo {
-    height: 50px;
-    top: 0;
+    height: 40px;
   }
 }
 
-/* Menu toggle button (mobile) */
-.menu-toggle {
-  display: none;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #333;
-  font-size: 1.5rem;
-  line-height: 1;
-}
-
 /* Desktop nav */
+/* ADDITION: push nav-links to the right by the width of the logo so they don't overlap.
+   We use a safe fixed offset (logo width ≈ 64px + some padding = 88px). If you change logo
+   height/width dramatically, adjust this offset. */
 .nav-links {
   display: flex;
   align-items: center;
   gap: 1.25rem;
   list-style: none;
-  margin: 0 1rem 0 0; /* ✅ move links slightly away from edge */
+  margin: 0;
   padding: 0;
+  margin-left: 88px; /* <-- ADDED: prevents links from overlapping the absolute logo */
 }
 
 .nav-links li {
@@ -122,6 +127,7 @@
 }
 
 /* Emphasize admin links visually */
+.nav-links a[href*="admin"],
 .nav-links a[href*="admin"] {
   color: #b04a4a;
 }
@@ -163,6 +169,8 @@
     padding: 0.75rem 0;
     border-top: 1px solid #eee;
     box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    margin-left: 0; /* cancel desktop offset on mobile */
+    z-index: 5;
   }
 
   .nav-links.open {
@@ -181,9 +189,23 @@
     display: inline-block;
   }
 
-  /* ✅ smaller mobile logo */
+  /* Mobile logo adjustments */
   .brand-logo {
-    height: 58px;
+    height: 56px;
+    align-self: center;
+  }
+
+  /* On mobile we don't need the negative offset; keep logo inline */
+  .nav-brand {
+    position: relative;
+    left: 0;
+    padding-left: 0;
+    align-items: center;
+  }
+
+  /* reduce header padding for mobile */
+  .header-nav {
+    padding: 0.25rem 0;
   }
 }
 
