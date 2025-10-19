@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
+import logo from "../assets/logo.jpg";  // ✅ import directly from src/assets
 import "./Header.css";
 
 const Header = () => {
@@ -39,18 +40,13 @@ const Header = () => {
         <div className="nav-brand">
           <Link to="/" className="brand-link" onClick={() => setMenuOpen(false)}>
             <img
-              src={logoPath}
+              src={logo}
               alt="Pilani Trails Logo"
               className="brand-logo"
-              onError={(e) => {
-                e.target.style.display = "none";
-                e.target.parentNode.innerHTML =
-                  '<span class="brand-text-fallback">Pilani Trails</span>';
-              }}
             />
           </Link>
         </div>
-
+        
         {/* Mobile toggle */}
         <button
           className="menu-toggle"
