@@ -5,13 +5,14 @@
   top: 0;
   z-index: 1000;
   width: 100%;
+  padding: 0; /* ✅ ensures no internal spacing */
 }
 
 .header-nav {
   display: flex;
-  align-items: center;
+  align-items: stretch; /* ✅ makes logo stretch full height */
   justify-content: space-between;
-  padding: 0.6rem 1rem;
+  padding: 0; /* ✅ remove side padding to let logo touch edges */
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -20,8 +21,9 @@
 .nav-brand,
 .nav-left {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  align-items: stretch; /* ✅ stretch full height */
+  gap: 0;
+  margin: 0;
 }
 
 /* If you keep the text brand (fallback), style it nicely */
@@ -29,7 +31,7 @@
 .brand-text-fallback {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #2b6cb0; /* soft blue */
+  color: #2b6cb0;
   text-decoration: none;
   transition: color 0.25s ease;
 }
@@ -40,26 +42,36 @@
   color: #255a9c;
 }
 
-/* Logo image styling */
+/* ✅ Logo image styling – now hugs left and bottom edges */
 .brand-link {
   display: inline-flex;
-  align-items: center;
+  align-items: stretch;
+  justify-content: flex-start;
   text-decoration: none;
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
+/* ✅ Logo tweaks for perfect alignment */
 .brand-logo {
-  height: 52px;      /* adjust size as needed */
+  height: 70px; /* increased for better visual weight */
   width: auto;
-  border-radius: 6px;
-  object-fit: contain;
+  border-radius: 0;
+  object-fit: cover;
   display: block;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  margin: 0;
+  padding: 0;
+  box-shadow: none;
+  position: relative;
+  top: 2px; /* tiny vertical adjust to hug bottom edge */
 }
 
 /* Small screens: slightly smaller logo */
 @media (max-width: 480px) {
   .brand-logo {
-    height: 40px;
+    height: 50px;
+    top: 0;
   }
 }
 
@@ -80,7 +92,7 @@
   align-items: center;
   gap: 1.25rem;
   list-style: none;
-  margin: 0;
+  margin: 0 1rem 0 0; /* ✅ move links slightly away from edge */
   padding: 0;
 }
 
@@ -110,7 +122,6 @@
 }
 
 /* Emphasize admin links visually */
-.nav-links a[href*="admin"],
 .nav-links a[href*="admin"] {
   color: #b04a4a;
 }
@@ -168,6 +179,11 @@
   .logout-btn {
     width: 100%;
     display: inline-block;
+  }
+
+  /* ✅ smaller mobile logo */
+  .brand-logo {
+    height: 58px;
   }
 }
 
