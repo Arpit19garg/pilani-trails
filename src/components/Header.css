@@ -5,17 +5,27 @@
   top: 0;
   z-index: 1000;
   width: 100%;
+  padding: 0;
 }
 
-/* Make header-nav a positioned container so we can place the logo absolutely */
+/* header-nav spans full viewport width (background full-bleed) */
 .header-nav {
+  width: 100%;
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
+/* header-inner centers content (keeps previous max-width behavior) */
+.header-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.6rem 1rem;
   max-width: 1200px;
   margin: 0 auto;
-  position: relative; /* <-- ADDED: needed so .nav-brand can be absolute relative to this */
+  padding: 0.6rem 1rem; /* same spacing you had */
+  box-sizing: border-box;
+  position: relative;
 }
 
 /* Brand container (keeps logo/text vertically centered) */
@@ -26,39 +36,31 @@
   gap: 0.75rem;
 }
 
-/* NEW: pull the brand out of normal flow and place it at the extreme left of the header.
-   This lets the logo visually touch the viewport left edge while keeping the centered
-   max-width nav content intact. */
+/* Pull brand left so logo visually touches viewport edge */
 .nav-brand {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
+  margin-left: -1rem; /* cancels header-inner left padding for visual flush */
   display: flex;
-  align-items: flex-end; /* hug bottom of header */
-  padding-left: 12px; /* small inner padding so logo isn't flush against the browser chrome */
-  box-sizing: border-box;
-  z-index: 10;
+  align-items: flex-end; /* hug bottom */
+  height: 100%;
+  z-index: 20;
 }
 
-/* If you keep the text brand (fallback), style it nicely */
+/* Brand text fallback */
 .nav-brand .brand-link,
 .brand-text-fallback {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #2b6cb0; /* soft blue */
+  color: #2b6cb0;
   text-decoration: none;
   transition: color 0.25s ease;
 }
 
-/* Hover state for the brand text */
 .nav-brand .brand-link:hover,
 .brand-text-fallback:hover {
   color: #255a9c;
 }
 
-/* Logo image styling */
-/* Keep brand-link display as inline-flex so the image sits inside nicely */
+/* Logo link */
 .brand-link {
   display: inline-flex;
   align-items: center;
@@ -67,9 +69,9 @@
   margin: 0;
 }
 
-/* Increase logo size slightly and ensure it hugs the bottom of the header */
+/* Logo image sizing and bottom-hugging */
 .brand-logo {
-  height: 64px;      /* slightly larger for visual weight */
+  height: 64px;
   width: auto;
   border-radius: 6px;
   object-fit: contain;
@@ -77,20 +79,29 @@
   box-shadow: 0 1px 4px rgba(0,0,0,0.06);
   margin: 0;
   padding: 0;
-  align-self: flex-end; /* hug bottom */
+  align-self: flex-end;
 }
 
-/* Small screens: slightly smaller logo */
+/* Mobile logo smaller */
 @media (max-width: 480px) {
   .brand-logo {
     height: 40px;
   }
 }
 
-/* Desktop nav */
-/* ADDITION: push nav-links to the right by the width of the logo so they don't overlap.
-   We use a safe fixed offset (logo width ≈ 64px + some padding = 88px). If you change logo
-   height/width dramatically, adjust this offset. */
+/* Mobile toggle must be above the logo */
+.menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #333;
+  font-size: 1.5rem;
+  line-height: 1;
+  z-index: 50;
+}
+
+/* Desktop nav links: offset to avoid overlapping logo */
 .nav-links {
   display: flex;
   align-items: center;
@@ -98,12 +109,10 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  margin-left: 88px; /* <-- ADDED: prevents links from overlapping the absolute logo */
+  margin-left: 88px; /* offset for logo width + spacing; adjust if logo size changes */
 }
 
-.nav-links li {
-  position: relative;
-}
+.nav-links li { position: relative; }
 
 .nav-links a,
 .logout-btn {
@@ -119,7 +128,6 @@
   transition: all 0.18s ease-in-out;
 }
 
-/* Hover states */
 .nav-links a:hover,
 .logout-btn:hover {
   color: #2b6cb0;
@@ -131,12 +139,9 @@
 .nav-links a[href*="admin"] {
   color: #b04a4a;
 }
+.nav-links a[href*="admin"]:hover { color: #8a2f2f; }
 
-.nav-links a[href*="admin"]:hover {
-  color: #8a2f2f;
-}
-
-/* Logout button style */
+/* Logout button */
 .logout-btn {
   background: #e74c3c;
   color: #fff;
@@ -146,16 +151,13 @@
   font-weight: 600;
   transition: background 0.18s ease;
 }
-
-.logout-btn:hover {
-  background: #c0392b;
-}
+.logout-btn:hover { background: #c0392b; }
 
 /* Responsive behavior */
 @media (max-width: 768px) {
-  .menu-toggle {
-    display: block;
-  }
+  .header-inner { padding: 0.5rem 0.75rem; }
+
+  .menu-toggle { display: block; z-index: 60; }
 
   .nav-links {
     display: none;
@@ -170,12 +172,10 @@
     border-top: 1px solid #eee;
     box-shadow: 0 6px 18px rgba(0,0,0,0.06);
     margin-left: 0; /* cancel desktop offset on mobile */
-    z-index: 5;
+    z-index: 40;
   }
 
-  .nav-links.open {
-    display: flex;
-  }
+  .nav-links.open { display: flex; }
 
   .nav-links li {
     width: 100%;
@@ -184,29 +184,16 @@
   }
 
   .nav-links a,
-  .logout-btn {
-    width: 100%;
-    display: inline-block;
-  }
+  .logout-btn { width: 100%; display: inline-block; }
 
-  /* Mobile logo adjustments */
-  .brand-logo {
-    height: 56px;
-    align-self: center;
-  }
+  .brand-logo { height: 56px; align-self: center; }
 
-  /* On mobile we don't need the negative offset; keep logo inline */
   .nav-brand {
-    position: relative;
-    left: 0;
-    padding-left: 0;
+    margin-left: 0; /* cancel pull on mobile */
     align-items: center;
   }
 
-  /* reduce header padding for mobile */
-  .header-nav {
-    padding: 0.25rem 0;
-  }
+  .header-nav { padding: 0.25rem 0; }
 }
 
 /* Accessibility focus states */
