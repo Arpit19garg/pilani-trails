@@ -9,15 +9,66 @@
   --radius: 14px;
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
 }
-*{box-sizing:border-box}
-body{
-  margin:0;
-  background: linear-gradient(180deg, var(--bg), #fff7f3 120px);
-  color:#111827;
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-  min-height:100vh;
+
+/* === SITE-WIDE BACKGROUND IMAGE ===
+   Put your file at: src/assets/bg.jpg
+   (Vite will rewrite the URL at build time.)
+*/
+body {
+  margin: 0;
+  color: #111827;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+
+  /* Background image layer */
+  background-image: url("../assets/bg.jpg");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-attachment: fixed;
+  background-size: cover;
+
+  /* Fallback gradient while image loads */
+  background-color: linear-gradient(180deg, var(--bg), #fff7f3 120px);
+  position: relative;
 }
+
+/* overlay to improve contrast (between image and UI) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0; /* top:0 right:0 bottom:0 left:0 */
+  background: rgba(255,255,255,0.72); /* light overlay to keep UI bright; change alpha if desired */
+  /* If you prefer a darker overlay, try rgba(0,0,0,0.18) */
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ensure app content stacks above the overlay */
+#root,
+.app-root,
+.site-header,
+.home-grid,
+.map-container,
+.sidebar,
+.main,
+.page-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* Slightly translucent header so the pattern peeks through nicely */
+.app-header,
+.site-header {
+  background-color: rgba(255,255,255,0.92); /* nearly solid white but allows texture through */
+  backdrop-filter: saturate(110%) blur(3px); /* optional tasteful blur */
+}
+
+/* === original file content preserved below (kept original rules) === */
+
+*{box-sizing:border-box}
+
+/* note: your original body rules replaced above; keep the rest of layout rules intact */
 .app-root{display:flex;flex-direction:column;min-height:100vh}
 .site-header{
   display:flex;align-items:center;justify-content:space-between;padding:16px 24px;background:transparent;
