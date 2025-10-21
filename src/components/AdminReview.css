@@ -1,68 +1,277 @@
-/* AdminReview.css */
+/* --- AdminReview.css --- */
 
 .admin-review-container {
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 
-.admin-review-title {
-  font-size: 24px;
-  font-weight: bold;
+.admin-review-header {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.admin-review-header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #222;
+}
+
+.admin-review-header p {
+  margin: 4px 0 0;
+  color: #666;
+  font-size: 15px;
+}
+
+/* Filter section */
+.filter-section {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
   margin-bottom: 20px;
-  color: #333;
 }
 
-.review-list {
+.status-filter {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+}
+
+/* Proposals grid */
+.proposals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.proposal-card {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.review-item {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 15px;
-  background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.proposal-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.12);
 }
 
-.review-item-header {
+.proposal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 6px;
   margin-bottom: 10px;
 }
 
-.review-item-actions {
+.proposal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+  font-weight: 600;
+}
+
+/* Status badges */
+.status-badge {
+  text-transform: capitalize;
+  font-size: 13px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.status-badge.pending {
+  background-color: #f39c12;
+}
+
+.status-badge.approved {
+  background-color: #2ecc71;
+}
+
+.status-badge.rejected {
+  background-color: #e74c3c;
+}
+
+/* Proposal details */
+.proposal-details {
+  flex: 1;
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.approve-btn,
-.reject-btn {
-  padding: 8px 16px;
-  border: none;
+.detail-row {
+  font-size: 14px;
+  color: #333;
+}
+
+.detail-row strong {
+  display: block;
+  color: #555;
+  margin-bottom: 2px;
+}
+
+.category-tag {
+  background: #e8f4ff;
+  color: #2b6cb0;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+.proposal-image {
+  margin-top: 6px;
+  border-radius: 8px;
+  max-width: 100%;
+  height: auto;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* Rejection reason */
+.rejection-reason {
+  background-color: #fff4f4;
+  border-left: 3px solid #e74c3c;
+  padding: 6px 10px;
   border-radius: 4px;
+  margin-top: 6px;
+  font-size: 13px;
+  color: #a33;
+}
+
+/* Action buttons */
+.proposal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.btn {
+  border: none;
+  border-radius: 6px;
   cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.3s;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 6px 12px;
+  transition: all 0.2s ease-in-out;
 }
 
-.approve-btn {
-  background-color: #4CAF50;
-  color: white;
+.btn-approve {
+  background-color: #2ecc71;
+  color: #fff;
 }
 
-.approve-btn:hover {
-  background-color: #45a049;
+.btn-approve:hover {
+  background-color: #27ae60;
 }
 
-.reject-btn {
-  background-color: #f44336;
-  color: white;
+.btn-reject {
+  background-color: #e74c3c;
+  color: #fff;
 }
 
-.reject-btn:hover {
-  background-color: #da190b;
+.btn-reject:hover {
+  background-color: #c0392b;
+}
+
+.btn-delete {
+  background-color: #888;
+  color: #fff;
+}
+
+.btn-delete:hover {
+  background-color: #666;
+}
+
+.btn-edit {
+  background-color: #3498db;
+  color: #fff;
+}
+
+.btn-edit:hover {
+  background-color: #2980b9;
+}
+
+/* Loading + Empty states */
+.admin-review-loading,
+.no-proposals {
+  text-align: center;
+  font-size: 16px;
+  color: #777;
+  padding: 40px 0;
+}
+
+/* --- Edit Modal --- */
+.edit-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.edit-modal {
+  width: min(760px, 95%);
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.edit-modal h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #222;
+}
+
+.edit-modal label {
+  display: block;
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.edit-modal input,
+.edit-modal textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.edit-modal textarea {
+  resize: vertical;
+}
+
+/* Modal buttons */
+.edit-modal .btn {
+  min-width: 100px;
+}
+
+@media (max-width: 600px) {
+  .proposals-grid {
+    grid-template-columns: 1fr;
+  }
+  .filter-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
