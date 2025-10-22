@@ -82,7 +82,6 @@ const Header = () => {
           {isAdmin && (
             <>
               <li><Link to="/admin/review" onClick={() => setMenuOpen(false)}>Admin Review</Link></li>
-              <li><Link to="/admin" onClick={() => setMenuOpen(false)}>Admin Panel</Link></li>
             </>
           )}
 
