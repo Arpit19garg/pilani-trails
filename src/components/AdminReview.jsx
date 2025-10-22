@@ -1,70 +1,151 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, doc, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
+import {
+  collection,
+  getDocs,
+  doc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  // add if you later want: addDoc, serverTimestamp
+} from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../AuthContext';
 import './AdminReview.css';
 
+function isAdminOf(currentUser) {
+  if (!currentUser) return false;
+  // Accept boolean isAdmin (preferred), custom claim 'admin', role string, or string 'true' (fallback)
+  if (currentUser.isAdmin === true) return true;
+  if (currentUser.admin === true) return true;
+  if (currentUser.role === 'admin') return true;
+  if (typeof currentUser.isAdmin === 'string' && currentUser.isAdmin.toLowerCase() === 'true') return true;
+  return false;
+}
+
+function normalizeCreatedAt(createdAt) {
+  if (!createdAt) return '—';
+  // Firestore Timestamp object has .seconds
+  if (createdAt.seconds) return new Date(createdAt.seconds * 1000).toLocaleString();
+  // ISO string or JS Date
+  try {
+    return new Date(createdAt).toLocaleString();
+  } catch {
+    return String(createdAt);
+  }
+}
+
 const AdminReview = () => {
+  const { currentUser, loading: authLoading } = useAuth();
   const [proposals, setProposals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({});
-  const { currentUser } = useAuth();
+  const [fetchError, setFetchError] = useState(null);
 
-  // ✅ Only admin (manually set in Firebase)
-  const isAdmin = currentUser?.email === "admin@pilanitrails.com";
+  const isAdmin = isAdminOf(currentUser);
 
+  // fetch only after auth resolved and when isAdmin true
   useEffect(() => {
-    if (isAdmin) fetchProposals();
-  }, [filter, isAdmin]);
+    console.debug('[AdminReview] authLoading=', authLoading, 'currentUser=', currentUser, 'isAdmin=', isAdmin);
+    if (authLoading) return; // wait for auth
+    if (!isAdmin) {
+      setLoading(false);
+      return;
+    }
+    fetchProposals();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter, authLoading, currentUser]);
 
   const fetchProposals = async () => {
+    setFetchError(null);
     try {
       setLoading(true);
-      const proposalsRef = collection(db, 'locationProposals');
+      const collectionName = 'locationProposals'; // adjust if your collection is named differently
+      const proposalsRef = collection(db, collectionName);
       let q;
       if (filter === 'all') q = proposalsRef;
       else q = query(proposalsRef, where('status', '==', filter));
 
+      console.debug(`[AdminReview] querying ${collectionName} with filter=${filter}`);
       const snapshot = await getDocs(q);
-      setProposals(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      console.debug('[AdminReview] snapshot.size=', snapshot.size);
+
+      const docs = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      if (!docs || docs.length === 0) {
+        console.info('[AdminReview] No proposals returned from Firestore.');
+        // fallback to localStorage 'proposals' for offline/dev testing
+        try {
+          const raw = localStorage.getItem('proposals') || '[]';
+          const localProps = JSON.parse(raw);
+          if (Array.isArray(localProps) && localProps.length > 0) {
+            console.info('[AdminReview] Using fallback proposals from localStorage.');
+            setProposals(localProps);
+            return;
+          }
+        } catch (e) {
+          console.warn('[AdminReview] localStorage fallback failed', e);
+        }
+      }
+
+      setProposals(docs);
     } catch (err) {
-      console.error('Error fetching proposals:', err);
-      alert('Failed to load proposals');
+      console.error('[AdminReview] fetchProposals error:', err);
+      setFetchError(err?.message || String(err));
+      setProposals([]);
     } finally {
       setLoading(false);
     }
   };
 
+  // handlers
   const handleApprove = async (id) => {
-    await updateDoc(doc(db, 'locationProposals', id), {
-      status: 'approved',
-      reviewedBy: currentUser.email,
-      reviewedAt: new Date().toISOString()
-    });
-    fetchProposals();
+    if (!isAdmin) return alert('Admin only');
+    try {
+      await updateDoc(doc(db, 'locationProposals', id), {
+        status: 'approved',
+        reviewedBy: currentUser?.uid || currentUser?.email || 'admin',
+        reviewedAt: new Date().toISOString()
+      });
+      fetchProposals();
+    } catch (err) {
+      console.error('Approve error', err);
+      alert('Approve failed: ' + (err?.message || err));
+    }
   };
 
   const handleReject = async (id) => {
+    if (!isAdmin) return alert('Admin only');
     const reason = prompt('Reason for rejection?');
     if (!reason) return;
-    await updateDoc(doc(db, 'locationProposals', id), {
-      status: 'rejected',
-      rejectionReason: reason,
-      reviewedBy: currentUser.email,
-      reviewedAt: new Date().toISOString()
-    });
-    fetchProposals();
+    try {
+      await updateDoc(doc(db, 'locationProposals', id), {
+        status: 'rejected',
+        rejectionReason: reason,
+        reviewedBy: currentUser?.uid || currentUser?.email || 'admin',
+        reviewedAt: new Date().toISOString()
+      });
+      fetchProposals();
+    } catch (err) {
+      console.error('Reject error', err);
+      alert('Reject failed: ' + (err?.message || err));
+    }
   };
 
   const handleDelete = async (id) => {
+    if (!isAdmin) return alert('Admin only');
     if (!window.confirm('Delete this location permanently?')) return;
-    await deleteDoc(doc(db, 'locationProposals', id));
-    fetchProposals();
+    try {
+      await deleteDoc(doc(db, 'locationProposals', id));
+      fetchProposals();
+    } catch (err) {
+      console.error('Delete error', err);
+      alert('Delete failed: ' + (err?.message || err));
+    }
   };
 
-  // ✅ Editing handlers
+  // edit functions
   const startEditing = (proposal) => {
     setEditingId(proposal.id);
     setEditData({
@@ -72,6 +153,9 @@ const AdminReview = () => {
       description: proposal.description || '',
       category: proposal.category || '',
       tags: proposal.tags || '',
+      latitude: proposal.latitude ?? proposal.lat ?? '',
+      longitude: proposal.longitude ?? proposal.lng ?? '',
+      imageUrl: proposal.imageUrl || ''
     });
   };
 
@@ -80,26 +164,45 @@ const AdminReview = () => {
   };
 
   const saveEdit = async (id) => {
+    if (!isAdmin) return alert('Admin only');
     try {
-      await updateDoc(doc(db, 'locationProposals', id), {
-        ...editData,
-        editedBy: currentUser.email,
-        editedAt: new Date().toISOString(),
-      });
+      const payload = { ...editData, editedBy: currentUser?.uid || currentUser?.email || 'admin', editedAt: new Date().toISOString() };
+      // ensure lat/lng are numbers if present
+      if (payload.latitude !== '') {
+        const latNum = parseFloat(payload.latitude);
+        if (!isNaN(latNum)) payload.latitude = latNum;
+      }
+      if (payload.longitude !== '') {
+        const lngNum = parseFloat(payload.longitude);
+        if (!isNaN(lngNum)) payload.longitude = lngNum;
+      }
+      await updateDoc(doc(db, 'locationProposals', id), payload);
       alert('Location updated successfully!');
       setEditingId(null);
       fetchProposals();
     } catch (err) {
-      console.error('Error updating location:', err);
-      alert('Failed to save changes');
+      console.error('Update error', err);
+      alert('Update failed: ' + (err?.message || err));
     }
   };
 
+  // Render guard: if auth still loading, show loading
+  if (authLoading) return <div className="admin-review-loading">Checking auth...</div>;
+
+  // Not admin -> show access denied but include debug hint
   if (!isAdmin) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center' }}>
-        <h2>Access Denied</h2>
-        <p>You must be an admin to view this page.</p>
+      <div className="admin-review-container">
+        <div className="admin-review-header">
+          <h1>Admin Control Panel</h1>
+          <p>Only admins may access this page.</p>
+        </div>
+        <div style={{ padding: 16, color: '#c00' }}>
+          <strong>Not recognized as admin.</strong>
+          <div style={{ marginTop: 8 }}>
+            console: <code>currentUser</code> shows in DevTools — verify <code>isAdmin</code> or <code>role</code> or custom claims are set.
+          </div>
+        </div>
       </div>
     );
   }
@@ -113,8 +216,8 @@ const AdminReview = () => {
         <p>Approve, edit, or delete any location directly</p>
       </div>
 
-      <div className="filter-section">
-        <label>Filter:</label>
+      <div className="filter-section" style={{ marginBottom: 12 }}>
+        <label style={{ marginRight: 8 }}>Filter:</label>
         <select value={filter} onChange={(e) => setFilter(e.target.value)}>
           <option value="all">All</option>
           <option value="pending">Pending</option>
@@ -123,8 +226,14 @@ const AdminReview = () => {
         </select>
       </div>
 
+      {fetchError && (
+        <div style={{ color: 'crimson', marginBottom: 12 }}>
+          Error fetching proposals: {fetchError}
+        </div>
+      )}
+
       {proposals.length === 0 ? (
-        <p>No proposals found.</p>
+        <div className="no-proposals">No proposals found.</div>
       ) : (
         <div className="proposals-grid">
           {proposals.map((p) => (
@@ -135,44 +244,44 @@ const AdminReview = () => {
                     value={editData.name}
                     onChange={(e) => handleEditChange('name', e.target.value)}
                     className="edit-input"
+                    placeholder="Name"
                   />
                 ) : (
-                  <h3>{p.name}</h3>
+                  <h3 style={{ margin: 0 }}>{p.name}</h3>
                 )}
                 <span className={`status-badge ${p.status}`}>{p.status}</span>
               </div>
 
-              <div className="proposal-details">
+              <div className="proposal-details" style={{ marginTop: 8 }}>
                 {editingId === p.id ? (
                   <>
                     <label>Description:</label>
-                    <textarea
-                      value={editData.description}
-                      onChange={(e) => handleEditChange('description', e.target.value)}
-                    />
+                    <textarea value={editData.description} onChange={(e) => handleEditChange('description', e.target.value)} />
                     <label>Category:</label>
-                    <input
-                      value={editData.category}
-                      onChange={(e) => handleEditChange('category', e.target.value)}
-                    />
-                    <label>Tags:</label>
-                    <input
-                      value={editData.tags}
-                      onChange={(e) => handleEditChange('tags', e.target.value)}
-                    />
+                    <input value={editData.category} onChange={(e) => handleEditChange('category', e.target.value)} />
+                    <label>Tags (comma separated):</label>
+                    <input value={editData.tags} onChange={(e) => handleEditChange('tags', e.target.value)} />
+                    <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                      <input style={{ flex: 1 }} placeholder="Latitude" value={editData.latitude} onChange={(e) => handleEditChange('latitude', e.target.value)} />
+                      <input style={{ flex: 1 }} placeholder="Longitude" value={editData.longitude} onChange={(e) => handleEditChange('longitude', e.target.value)} />
+                    </div>
+                    <label>Image URL:</label>
+                    <input value={editData.imageUrl} onChange={(e) => handleEditChange('imageUrl', e.target.value)} />
                   </>
                 ) : (
                   <>
-                    <p><strong>Description:</strong> {p.description}</p>
-                    <p><strong>Category:</strong> {p.category}</p>
+                    <p><strong>Description:</strong> {p.description || '—'}</p>
+                    <p><strong>Category:</strong> {p.category || '—'}</p>
                     <p><strong>Tags:</strong> {p.tags || '—'}</p>
-                    <p><strong>Lat:</strong> {p.latitude}, <strong>Lng:</strong> {p.longitude}</p>
-                    <p><strong>By:</strong> {p.proposedBy}</p>
+                    <p><strong>Lat:</strong> {p.latitude ?? p.lat ?? '—'}, <strong>Lng:</strong> {p.longitude ?? p.lng ?? '—'}</p>
+                    <p><strong>By:</strong> {p.proposedBy || p.userEmail || '—'}</p>
+                    <p><strong>Submitted:</strong> {normalizeCreatedAt(p.createdAt)}</p>
+                    {p.imageUrl && <img src={p.imageUrl} alt={p.name} style={{ width: '100%', borderRadius: 8, marginTop: 8 }} />}
                   </>
                 )}
               </div>
 
-              <div className="proposal-actions">
+              <div className="proposal-actions" style={{ marginTop: 10 }}>
                 {editingId === p.id ? (
                   <>
                     <button onClick={() => saveEdit(p.id)} className="btn btn-save">Save</button>
