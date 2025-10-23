@@ -42,17 +42,21 @@ export const AuthProvider = ({ children }) => {
 
   // Watch for auth state changes and merge role data from Firestore
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+   const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
           console.log('[AuthContext] user signed in:', user.email, 'uid:', user.uid);
           const userRef = doc(db, 'users', user.uid);
           const snap = await getDoc(userRef);
           const userData = snap && snap.exists() ? snap.data() : {};
-          console.log('[AuthContext] userData from Firestore:', userData);
 
-          // Merge role/flags from Firestore into the user object
+          // coerce string "true"/"false" to boolean if needed
+          if (typeof userData.isAdmin === 'string') {
+            userData.isAdmin = userData.isAdmin.toLowerCase() === 'true';
+          }
+
           setCurrentUser({ ...user, ...userData });
+          console.log('[AuthContext] userData from Firestore:', userData);
         } catch (err) {
           console.error('[AuthContext] Error loading user data from Firestore:', err);
           setCurrentUser(user);
