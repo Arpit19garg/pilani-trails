@@ -77,22 +77,41 @@ const AdminReview = () => {
     }
   };
 
-  // ✅ Approve
-  const handleApprove = async (id) => {
-    if (!isAdmin) return alert("Admin only");
-    try {
-      await updateDoc(doc(db, "locationProposals", id), {
-        status: "approved",
-        reviewedBy: currentUser?.email || currentUser?.uid || "admin",
-        reviewedAt: new Date().toISOString(),
-      });
-      alert("Proposal approved!");
-      fetchProposals();
-    } catch (err) {
-      console.error("Approve error:", err);
-      alert("Approve failed: " + err.message);
+// ✅ Approve proposal and move it to approvedLocations
+const handleApprove = async (id) => {
+  if (!isAdmin) return alert("Admin only");
+  try {
+    const proposalRef = doc(db, "locationProposals", id);
+    const proposalSnap = await getDoc(proposalRef);
+
+    if (!proposalSnap.exists()) {
+      alert("Proposal not found!");
+      return;
     }
-  };
+
+    const proposalData = proposalSnap.data();
+
+    // 1️⃣ Update status in locationProposals
+    await updateDoc(proposalRef, {
+      status: "approved",
+      reviewedBy: currentUser?.email || currentUser?.uid || "admin",
+      reviewedAt: new Date().toISOString(),
+    });
+
+    // 2️⃣ Add to approvedLocations collection
+    await addDoc(collection(db, "approvedLocations"), {
+      ...proposalData,
+      approvedBy: currentUser?.email || "admin",
+      approvedAt: new Date().toISOString(),
+    });
+
+    alert("Proposal approved and moved to approved locations!");
+    fetchProposals(); // refresh UI
+  } catch (err) {
+    console.error("Approve error:", err);
+    alert("Approve failed: " + err.message);
+  }
+};
 
   // ✅ Reject
   const handleReject = async (id) => {
