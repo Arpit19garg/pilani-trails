@@ -17,7 +17,7 @@ import {
 
 // Collection references
 const USERS_COLLECTION = 'users';
-const PROPOSALS_COLLECTION = 'proposals';
+const PROPOSALS_COLLECTION = 'locationProposals';
 
 // ==================== USER PROFILE MANAGEMENT ====================
 
