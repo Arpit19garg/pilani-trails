@@ -1,0 +1,83 @@
+name: Clean Docs and Deploy (one-shot)
+
+# Allow manual run too
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  clean-build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Ensure we're on latest main
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git fetch origin main
+          git checkout main
+          git reset --hard origin/main
+
+      - name: Remove old docs contents
+        run: |
+          if [ -d docs ]; then
+            rm -rf docs/*
+          else
+            mkdir -p docs
+          fi
+
+      - name: Build production
+        env:
+          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+          VITE_FIREBASE_MEASUREMENT_ID: ${{ secrets.VITE_FIREBASE_MEASUREMENT_ID }}
+        run: npm run build
+
+      - name: Copy build to docs/
+        run: |
+          # adjust if your build output dir is different (vite default is dist)
+          BUILD_DIR="dist"
+          if [ -d "$BUILD_DIR" ]; then
+            cp -R "$BUILD_DIR"/. docs/
+          else
+            echo "Build folder $BUILD_DIR not found"
+            ls -la
+            exit 1
+          fi
+
+      - name: Commit docs changes (if any)
+        run: |
+          git add docs || true
+          # show changes for debugging
+          git status --porcelain
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "CI: rebuild docs (clean-and-deploy)"
+            # safe push: push only if remote didn't change in the meantime (fast-forward)
+            git pull --rebase origin main || true
+            git push origin HEAD:main
+          fi
