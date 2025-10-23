@@ -81,7 +81,7 @@ const Header = () => {
 
           {isAdmin && (
             <>
-              <li><Link to="/admin/review" onClick={() => setMenuOpen(false)}>Admin Review</Link></li>
+              <Route path="/admin-review" element={<AdminRoute><AdminReview /></AdminRoute>} />
             </>
           )}
 
