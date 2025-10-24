@@ -15,7 +15,10 @@ import { db } from "../firebase";
 import { useAuth } from "../AuthContext";
 import "./AdminReview.css";
 
-// admin check helper
+/**
+ * Simple admin detection (looks at common Firestore profile fields).
+ * You already set isAdmin true in your users collection, so this will work.
+ */
 function isAdminOf(currentUser) {
   if (!currentUser) return false;
   if (currentUser.isAdmin === true) return true;
@@ -36,7 +39,10 @@ function normalizeCreatedAt(createdAt) {
   }
 }
 
-// tolerant getter for fields (handles different key casings)
+/**
+ * Map tolerant getters (handles slightly different key names in Firestore).
+ * We'll still render the exact fields below, but this helps read variant docs.
+ */
 function pickField(obj = {}, cand = []) {
   const map = Object.keys(obj).reduce((acc, k) => {
     acc[k.toLowerCase().replace(/\s+/g, "")] = k;
@@ -48,6 +54,12 @@ function pickField(obj = {}, cand = []) {
   }
   return undefined;
 }
+
+/**
+ * --- CONFIG: Hardcoded admin label shown as "Approved by" / "Rejected by"
+ * You said single admin is fine; change this string if you prefer a different label.
+ */
+const APPROVER_LABEL = "Admin (gargarpit2002@gmail.com)";
 
 const AdminReview = () => {
   const { currentUser, loading: authLoading } = useAuth();
@@ -88,7 +100,7 @@ const AdminReview = () => {
     }
   };
 
-  // Approve & copy to approvedLocations
+  // Approve: update status + copy to approvedLocations
   const handleApprove = async (id) => {
     if (!isAdmin) return alert("Admin only");
     try {
@@ -102,14 +114,14 @@ const AdminReview = () => {
 
       await updateDoc(proposalRef, {
         status: "approved",
-        reviewedBy: currentUser?.email || currentUser?.uid || "admin",
+        reviewedBy: currentUser?.email || currentUser?.uid || APPROVER_LABEL,
         reviewedAt: new Date().toISOString(),
       });
 
-      // add to approvedLocations collection
+      // add to approvedLocations
       await addDoc(collection(db, "approvedLocations"), {
         ...proposalData,
-        approvedBy: currentUser?.email || "admin",
+        approvedBy: currentUser?.email || APPROVER_LABEL,
         approvedAt: new Date().toISOString(),
       });
 
@@ -129,7 +141,7 @@ const AdminReview = () => {
       await updateDoc(doc(db, "locationProposals", id), {
         status: "rejected",
         rejectionReason: reason,
-        reviewedBy: currentUser?.email || currentUser?.uid || "admin",
+        reviewedBy: currentUser?.email || currentUser?.uid || APPROVER_LABEL,
         reviewedAt: new Date().toISOString(),
       });
       alert("Proposal rejected!");
@@ -173,7 +185,7 @@ const AdminReview = () => {
     try {
       const payload = {
         ...editData,
-        editedBy: currentUser?.email || currentUser?.uid || "admin",
+        editedBy: currentUser?.email || currentUser?.uid || APPROVER_LABEL,
         editedAt: new Date().toISOString(),
       };
       await updateDoc(doc(db, "locationProposals", id), payload);
@@ -186,6 +198,7 @@ const AdminReview = () => {
     }
   };
 
+  // render guards
   if (authLoading) return <div className="admin-review-loading">Checking authentication...</div>;
 
   if (!isAdmin) {
@@ -225,13 +238,15 @@ const AdminReview = () => {
       ) : (
         <div className="proposals-grid">
           {proposals.map((p) => {
+            // explicit fields (exact labels you requested)
             const name = pickField(p, ["name", "Name"]) || "—";
             const description = pickField(p, ["description", "Description"]) || "—";
             const category = pickField(p, ["category", "Category"]) || "—";
             const tags = pickField(p, ["tags", "Tags"]) || "—";
-            const imageUrl = pickField(p, ["imageUrl", "image", "Image URL"]) || "";
             const proposedBy = pickField(p, ["proposedBy", "Proposed by", "userEmail", "userEmail"]) || p.userEmail || p.userId || "—";
             const createdAt = p.createdAt ? normalizeCreatedAt(p.createdAt) : "—";
+            const status = p.status || "pending";
+            const rejectionReason = p.rejectionReason || "";
 
             return (
               <div key={p.id} className="proposal-card">
@@ -241,7 +256,7 @@ const AdminReview = () => {
                   ) : (
                     <h3 style={{ margin: 0 }}>{name}</h3>
                   )}
-                  <span className={`status-badge ${p.status || 'pending'}`}>{p.status || "pending"}</span>
+                  <span className={`status-badge ${status}`}>{status}</span>
                 </div>
 
                 <div className="proposal-details" style={{ marginTop: 8 }}>
@@ -261,9 +276,23 @@ const AdminReview = () => {
                       <p><strong>Description:</strong> {description}</p>
                       <p><strong>Category:</strong> {category}</p>
                       <p><strong>Tags:</strong> {tags}</p>
-                      <p><strong>By:</strong> {proposedBy}</p>
-                      <p><strong>Submitted:</strong> {createdAt}</p>
-                      {imageUrl && <img src={imageUrl} alt={name} style={{ width: "100%", borderRadius: 8, marginTop: 8 }} />}
+                      <p><strong>Proposed by:</strong> {proposedBy}</p>
+                      <p><strong>Created At:</strong> {createdAt}</p>
+
+                      {/* Explicit Approved/Rejected displays (hardcoded label as requested) */}
+                      {status === "approved" && (
+                        <p><strong>Approved by:</strong> {currentUser?.email || APPROVER_LABEL}</p>
+                      )}
+
+                      {status === "rejected" && (
+                        <>
+                          <p><strong>Rejected by:</strong> {currentUser?.email || APPROVER_LABEL}</p>
+                          {rejectionReason && <p><strong>Rejection reason:</strong> {rejectionReason}</p>}
+                        </>
+                      )}
+
+                      {/* image */}
+                      {p.imageUrl && <img src={p.imageUrl} alt={name} style={{ width: "100%", borderRadius: 8, marginTop: 8 }} />}
                     </>
                   )}
                 </div>
