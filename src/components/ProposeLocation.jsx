@@ -9,9 +9,9 @@ const ProposeLocation = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    latitude: '',
-    longitude: '',
     category: '',
+    tags: '',
+    imageUrl: ''
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -29,15 +29,9 @@ const ProposeLocation = () => {
       return;
     }
 
-    if (!formData.name || !formData.description || !formData.latitude || !formData.longitude || !formData.category) {
-      setMessage({ type: 'error', text: 'Please fill in all fields.' });
-      return;
-    }
-
-    const lat = parseFloat(formData.latitude);
-    const lng = parseFloat(formData.longitude);
-    if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-      setMessage({ type: 'error', text: 'Please enter valid coordinates.' });
+    // Required fields: name, description, category
+    if (!formData.name || !formData.description || !formData.category) {
+      setMessage({ type: 'error', text: 'Please provide a name, description and category.' });
       return;
     }
 
@@ -45,27 +39,27 @@ const ProposeLocation = () => {
     setMessage({ type: '', text: '' });
 
     try {
-      // ✅ Add to the same collection your AdminReview reads
+      // Save to collection `locationProposals` without lat/lng
       await addDoc(collection(db, 'locationProposals'), {
         name: formData.name,
         description: formData.description,
-        latitude: lat,
-        longitude: lng,
         category: formData.category,
+        tags: formData.tags || '',
+        imageUrl: formData.imageUrl || '',
         status: 'pending',
-        proposedBy: currentUser.displayName || currentUser.email,
+        proposedBy: currentUser.displayName || currentUser.email || currentUser.uid,
         userId: currentUser.uid,
-        userEmail: currentUser.email,
-        createdAt: serverTimestamp(),
+        userEmail: currentUser.email || '',
+        createdAt: serverTimestamp()
       });
 
       setMessage({ type: 'success', text: 'Location proposal submitted successfully!' });
       setFormData({
         name: '',
         description: '',
-        latitude: '',
-        longitude: '',
         category: '',
+        tags: '',
+        imageUrl: ''
       });
     } catch (error) {
       console.error('Error submitting proposal:', error);
@@ -119,31 +113,6 @@ const ProposeLocation = () => {
             />
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label>Latitude *</label>
-              <input
-                type="text"
-                name="latitude"
-                value={formData.latitude}
-                onChange={handleChange}
-                placeholder="e.g., 28.3636"
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>Longitude *</label>
-              <input
-                type="text"
-                name="longitude"
-                value={formData.longitude}
-                onChange={handleChange}
-                placeholder="e.g., 75.5868"
-                required
-              />
-            </div>
-          </div>
-
           <div className="form-group">
             <label>Category *</label>
             <select
@@ -161,6 +130,28 @@ const ProposeLocation = () => {
               <option value="stationery">Stationery</option>
               <option value="other">Other</option>
             </select>
+          </div>
+
+          <div className="form-group">
+            <label>Tags (comma separated)</label>
+            <input
+              type="text"
+              name="tags"
+              value={formData.tags}
+              onChange={handleChange}
+              placeholder="e.g., coffee,study"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Image URL (optional)</label>
+            <input
+              type="text"
+              name="imageUrl"
+              value={formData.imageUrl}
+              onChange={handleChange}
+              placeholder="https://..."
+            />
           </div>
 
           <button type="submit" className="submit-button" disabled={loading}>
