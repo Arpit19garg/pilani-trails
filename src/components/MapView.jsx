@@ -1,99 +1,89 @@
-import React, { useEffect, useRef } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet'
-import 'leaflet/dist/leaflet.css'
-import L from 'leaflet'
+// src/components/MapView.jsx
+import React, { useEffect, useState } from "react";
+import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+import { db } from "../firebase";
+import { collection, onSnapshot } from "firebase/firestore";
+import "./Home.css"; // for popup styles (we'll add next)
 
-// Fix default marker icon issue in Leaflet
-delete L.Icon.Default.prototype._getIconUrl
+// fix default marker icons
+delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-})
+  iconRetinaUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+});
 
-// Component to handle map clicks
-function MapClickHandler({ allPlaces = [], allPlacesSetter = () => {} }) {
-  useMapEvents({
-    click(e) {
-      const lat = e.latlng.lat
-      const lng = e.latlng.lng
-      const name = prompt('Add spot name (short):')
-      if (name) {
-        const id = 'u' + Date.now()
-        const item = { 
-          id, 
-          name, 
-          category: 'Food', 
-          desc: 'User-submitted spot', 
-          lat, 
-          lng, 
-          votes: 0, 
-          source: 'user' 
-        }
-        const copy = [...(Array.isArray(allPlaces) ? allPlaces : []), item]
-        allPlacesSetter(copy)
-        alert('Yo! Your pin is added locally. Go to Contribute page to add details & pics.')
-      }
-    },
-  })
-  return null
-}
+export default function MapView() {
+  const [locations, setLocations] = useState([]);
 
-export default function MapView({ places, onMarkerClick, allPlaces, allPlacesSetter }) {
-  const center = [28.3581, 75.6010] // Pilani coordinates
+  useEffect(() => {
+    // live listen to approved locations
+    const unsub = onSnapshot(collection(db, "approvedLocations"), (snap) => {
+      const arr = snap.docs
+        .map((d) => ({ id: d.id, ...d.data() }))
+        .filter(
+          (x) =>
+            x.location &&
+            typeof x.location.lat === "number" &&
+            typeof x.location.lng === "number"
+        );
+      setLocations(arr);
+    });
+    return () => unsub();
+  }, []);
 
   return (
-    <div className="map-container" style={{ height: '100%', width: '100%' }}>
-      <MapContainer 
-        center={center} 
-        zoom={15} 
-        style={{ height: '100%', width: '100%' }}
-        scrollWheelZoom={true}
+    <div style={{ height: "calc(100vh - 70px)", width: "100%" }}>
+      <MapContainer
+        center={[28.36, 75.59]}
+        zoom={15}
+        style={{ height: "100%", width: "100%" }}
       >
-        {/* OpenStreetMap Tiles - Free and no API key required */}
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
         />
-        
-        {/* Map click handler for adding new places */}
-        <MapClickHandler allPlaces={allPlaces} allPlacesSetter={allPlacesSetter} />
-        
-        {/* Render markers for all places */}
-        {(Array.isArray(places) ? places : []).map((place) => (
-          <Marker 
-            key={place.id} 
-            position={[place.lat, place.lng]}
-            eventHandlers={{
-              click: () => {
-                onMarkerClick && onMarkerClick(place)
-              },
-            }}
+
+        {locations.map((loc) => (
+          <Marker
+            key={loc.id}
+            position={[loc.location.lat, loc.location.lng]}
           >
-            <Popup>
-              <strong>{place.name}</strong><br />
-              {place.category && <span>Category: {place.category}</span>}<br />
-              {place.desc && <span>{place.desc}</span>}
+            <Tooltip direction="top" offset={[0, -8]}>
+              <div className="popup-tooltip">
+                <strong>{loc.name}</strong>
+                <div>{loc.category || "—"}</div>
+              </div>
+            </Tooltip>
+            <Popup className="popup-card">
+              <div className="popup-card-inner">
+                <h4>{loc.name}</h4>
+                <p>{loc.description}</p>
+                {loc.imageUrl && (
+                  <img
+                    src={loc.imageUrl}
+                    alt={loc.name}
+                    style={{
+                      width: "100%",
+                      height: "120px",
+                      objectFit: "cover",
+                      borderRadius: "8px",
+                    }}
+                  />
+                )}
+                <p style={{ marginTop: 8 }}>
+                  <small>{loc.category}</small>
+                </p>
+              </div>
             </Popup>
           </Marker>
         ))}
       </MapContainer>
-      
-      <div className="map-hint" style={{
-        position: 'absolute',
-        bottom: '20px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        padding: '10px 20px',
-        borderRadius: '5px',
-        boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-        zIndex: 1000,
-        fontSize: '14px',
-        textAlign: 'center'
-      }}>
-        Click anywhere on the map to add a quick pin (you can edit later on Contribute page)
-      </div>
     </div>
-  )
+  );
 }
