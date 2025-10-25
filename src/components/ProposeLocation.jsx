@@ -1,84 +1,79 @@
-import { useState, useContext } from 'react';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../firebase';
-import { AuthContext } from '../AuthContext';
-import './ProposeLocation.css';
+import { useState, useContext } from "react";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "../firebase";
+import { AuthContext } from "../AuthContext";
+import LocationPickerMap from "../components/LocationPickerMap";
+import "./ProposeLocation.css";
 
 const ProposeLocation = () => {
   const { currentUser } = useContext(AuthContext);
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    category: '',
-    tags: '',
-    imageUrl: ''
+    name: "",
+    description: "",
+    category: "",
+    tags: "",
+    imageUrl: "",
+    location: null,
   });
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
+  const [message, setMessage] = useState({ type: "", text: "" });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!currentUser) {
-      setMessage({ type: 'error', text: 'You must be logged in to propose a location.' });
-      return;
-    }
-
-    // Required fields: name, description, category
-    if (!formData.name || !formData.description || !formData.category) {
-      setMessage({ type: 'error', text: 'Please provide a name, description and category.' });
-      return;
-    }
+    if (!currentUser)
+      return setMessage({
+        type: "error",
+        text: "You must be logged in to propose a location.",
+      });
+    if (!formData.name || !formData.description || !formData.category)
+      return setMessage({
+        type: "error",
+        text: "Please provide name, description, and category.",
+      });
+    if (!formData.location)
+      return setMessage({
+        type: "error",
+        text: "Please drop a pin on the map to select location.",
+      });
 
     setLoading(true);
-    setMessage({ type: '', text: '' });
-
     try {
-      // Save to collection `locationProposals` without lat/lng
-      await addDoc(collection(db, 'locationProposals'), {
-        name: formData.name,
-        description: formData.description,
-        category: formData.category,
-        tags: formData.tags || '',
-        imageUrl: formData.imageUrl || '',
-        status: 'pending',
-        proposedBy: currentUser.displayName || currentUser.email || currentUser.uid,
+      await addDoc(collection(db, "locationProposals"), {
+        ...formData,
+        status: "pending",
+        proposedBy:
+          currentUser.displayName || currentUser.email || currentUser.uid,
         userId: currentUser.uid,
-        userEmail: currentUser.email || '',
-        createdAt: serverTimestamp()
+        userEmail: currentUser.email || "",
+        createdAt: serverTimestamp(),
       });
-
-      setMessage({ type: 'success', text: 'Location proposal submitted successfully!' });
+      setMessage({
+        type: "success",
+        text: "Location proposal submitted successfully!",
+      });
       setFormData({
-        name: '',
-        description: '',
-        category: '',
-        tags: '',
-        imageUrl: ''
+        name: "",
+        description: "",
+        category: "",
+        tags: "",
+        imageUrl: "",
+        location: null,
       });
-    } catch (error) {
-      console.error('Error submitting proposal:', error);
-      setMessage({ type: 'error', text: 'Failed to submit proposal. Please try again.' });
+    } catch (err) {
+      console.error("Error submitting proposal:", err);
+      setMessage({
+        type: "error",
+        text: "Failed to submit proposal. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
   };
-
-  if (!currentUser) {
-    return (
-      <div className="propose-location-container">
-        <div className="login-required">
-          <h2>Login Required</h2>
-          <p>You must be logged in to propose a new location.</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="propose-location-container">
@@ -97,7 +92,6 @@ const ProposeLocation = () => {
               value={formData.name}
               onChange={handleChange}
               placeholder="Enter location name"
-              required
             />
           </div>
 
@@ -108,8 +102,6 @@ const ProposeLocation = () => {
               value={formData.description}
               onChange={handleChange}
               placeholder="Describe the location"
-              rows="4"
-              required
             />
           </div>
 
@@ -119,7 +111,6 @@ const ProposeLocation = () => {
               name="category"
               value={formData.category}
               onChange={handleChange}
-              required
             >
               <option value="">Select a category</option>
               <option value="trail">Trail</option>
@@ -132,21 +123,28 @@ const ProposeLocation = () => {
             </select>
           </div>
 
+          {/* Drop-Pin Map */}
           <div className="form-group">
-            <label>Tags (comma separated)</label>
-            <input
-              type="text"
-              name="tags"
-              value={formData.tags}
-              onChange={handleChange}
-              placeholder="e.g., coffee,study"
+            <label>Pin Location *</label>
+            <LocationPickerMap
+              value={formData.location}
+              onChange={(val) => setFormData((p) => ({ ...p, location: val }))}
             />
           </div>
 
           <div className="form-group">
-            <label>Image URL (optional)</label>
+            <label>Tags</label>
             <input
-              type="text"
+              name="tags"
+              value={formData.tags}
+              onChange={handleChange}
+              placeholder="comma separated"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Image URL</label>
+            <input
               name="imageUrl"
               value={formData.imageUrl}
               onChange={handleChange}
@@ -155,7 +153,7 @@ const ProposeLocation = () => {
           </div>
 
           <button type="submit" className="submit-button" disabled={loading}>
-            {loading ? 'Submitting...' : 'Submit Proposal'}
+            {loading ? "Submitting..." : "Submit Proposal"}
           </button>
         </form>
       </div>
