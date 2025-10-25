@@ -1,13 +1,11 @@
-// src/components/MapView.jsx
 import React, { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { db } from "../firebase";
 import { collection, onSnapshot } from "firebase/firestore";
-import "./Home.css"; // for popup styles (we'll add next)
 
-// fix default marker icons
+// Fix marker icons
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -18,24 +16,36 @@ L.Icon.Default.mergeOptions({
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-export default function MapView() {
+export default function MapView({
+  places,
+  selected,
+  setSelected,
+  allPlaces,
+  allPlacesSetter,
+}) {
   const [locations, setLocations] = useState([]);
 
   useEffect(() => {
-    // live listen to approved locations
     const unsub = onSnapshot(collection(db, "approvedLocations"), (snap) => {
-      const arr = snap.docs
-        .map((d) => ({ id: d.id, ...d.data() }))
-        .filter(
-          (x) =>
-            x.location &&
-            typeof x.location.lat === "number" &&
-            typeof x.location.lng === "number"
-        );
+      const arr = snap.docs.map((d) => {
+        const data = d.data();
+        return {
+          id: d.id,
+          ...data,
+          location: data.location || null,
+        };
+      });
       setLocations(arr);
     });
     return () => unsub();
   }, []);
+
+  const validLocations = locations.filter(
+    (x) =>
+      x.location &&
+      typeof x.location.lat === "number" &&
+      typeof x.location.lng === "number"
+  );
 
   return (
     <div style={{ height: "calc(100vh - 70px)", width: "100%" }}>
@@ -49,18 +59,15 @@ export default function MapView() {
           attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
         />
 
-        {locations.map((loc) => (
-          <Marker
-            key={loc.id}
-            position={[loc.location.lat, loc.location.lng]}
-          >
+        {validLocations.map((loc) => (
+          <Marker key={loc.id} position={[loc.location.lat, loc.location.lng]}>
             <Tooltip direction="top" offset={[0, -8]}>
-              <div className="popup-tooltip">
+              <div>
                 <strong>{loc.name}</strong>
                 <div>{loc.category || "—"}</div>
               </div>
             </Tooltip>
-            <Popup className="popup-card">
+            <Popup>
               <div className="popup-card-inner">
                 <h4>{loc.name}</h4>
                 <p>{loc.description}</p>
