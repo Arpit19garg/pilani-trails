@@ -13,25 +13,32 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { useAuth } from "../AuthContext";
+import { MapContainer, TileLayer, Marker } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 import "./AdminReview.css";
 
 /**
  * Simple admin detection (looks at common Firestore profile fields).
- * You already set isAdmin true in your users collection, so this will work.
  */
 function isAdminOf(currentUser) {
   if (!currentUser) return false;
   if (currentUser.isAdmin === true) return true;
   if (currentUser.admin === true) return true;
   if (currentUser.role === "admin") return true;
-  if (typeof currentUser.isAdmin === "string" && currentUser.isAdmin.toLowerCase() === "true")
+  if (
+    typeof currentUser.isAdmin === "string" &&
+    currentUser.isAdmin.toLowerCase() === "true"
+  )
     return true;
+  const email = currentUser.email?.toLowerCase();
+  if (email === "admin@pilanitrails.com") return true;
   return false;
 }
 
 function normalizeCreatedAt(createdAt) {
   if (!createdAt) return "—";
-  if (createdAt.seconds) return new Date(createdAt.seconds * 1000).toLocaleString();
+  if (createdAt.seconds)
+    return new Date(createdAt.seconds * 1000).toLocaleString();
   try {
     return new Date(createdAt).toLocaleString();
   } catch {
@@ -41,7 +48,6 @@ function normalizeCreatedAt(createdAt) {
 
 /**
  * Map tolerant getters (handles slightly different key names in Firestore).
- * We'll still render the exact fields below, but this helps read variant docs.
  */
 function pickField(obj = {}, cand = []) {
   const map = Object.keys(obj).reduce((acc, k) => {
@@ -57,9 +63,8 @@ function pickField(obj = {}, cand = []) {
 
 /**
  * --- CONFIG: Hardcoded admin label shown as "Approved by" / "Rejected by"
- * You said single admin is fine; change this string if you prefer a different label.
  */
-const APPROVER_LABEL = "Admin (gargarpit2002@gmail.com)";
+const APPROVER_LABEL = "Admin (admin@pilanitrails.com)";
 
 const AdminReview = () => {
   const { currentUser, loading: authLoading } = useAuth();
@@ -87,7 +92,10 @@ const AdminReview = () => {
     try {
       setLoading(true);
       const proposalsRef = collection(db, "locationProposals");
-      const q = filter === "all" ? proposalsRef : query(proposalsRef, where("status", "==", filter));
+      const q =
+        filter === "all"
+          ? proposalsRef
+          : query(proposalsRef, where("status", "==", filter));
       const snapshot = await getDocs(q);
       const docs = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
       setProposals(docs);
@@ -100,7 +108,7 @@ const AdminReview = () => {
     }
   };
 
-  // Approve: update status + copy to approvedLocations
+  // ✅ Approve: update status + copy to approvedLocations
   const handleApprove = async (id) => {
     if (!isAdmin) return alert("Admin only");
     try {
@@ -112,20 +120,29 @@ const AdminReview = () => {
       }
       const proposalData = proposalSnap.data();
 
+      // ensure pin exists
+      if (
+        !proposalData.location ||
+        typeof proposalData.location.lat !== "number" ||
+        typeof proposalData.location.lng !== "number"
+      ) {
+        alert("Cannot approve — no pin location provided!");
+        return;
+      }
+
       await updateDoc(proposalRef, {
         status: "approved",
         reviewedBy: currentUser?.email || currentUser?.uid || APPROVER_LABEL,
         reviewedAt: new Date().toISOString(),
       });
 
-      // add to approvedLocations
       await addDoc(collection(db, "approvedLocations"), {
         ...proposalData,
         approvedBy: currentUser?.email || APPROVER_LABEL,
         approvedAt: new Date().toISOString(),
       });
 
-      alert("Proposal approved and moved to approved locations!");
+      alert("✅ Proposal approved and moved to approved locations!");
       fetchProposals();
     } catch (err) {
       console.error("Approve error:", err);
@@ -133,6 +150,7 @@ const AdminReview = () => {
     }
   };
 
+  // ❌ Reject proposal
   const handleReject = async (id) => {
     if (!isAdmin) return alert("Admin only");
     const reason = prompt("Reason for rejection?");
@@ -169,10 +187,12 @@ const AdminReview = () => {
     setEditingId(proposal.id);
     setEditData({
       name: pickField(proposal, ["name", "Name"]) || "",
-      description: pickField(proposal, ["description", "Description"]) || "",
+      description:
+        pickField(proposal, ["description", "Description"]) || "",
       category: pickField(proposal, ["category", "Category"]) || "",
       tags: pickField(proposal, ["tags", "Tags"]) || "",
-      imageUrl: pickField(proposal, ["imageUrl", "image", "Image URL"]) || ""
+      imageUrl:
+        pickField(proposal, ["imageUrl", "image", "Image URL"]) || "",
     });
   };
 
@@ -198,8 +218,13 @@ const AdminReview = () => {
     }
   };
 
-  // render guards
-  if (authLoading) return <div className="admin-review-loading">Checking authentication...</div>;
+  // 🧭 render guards
+  if (authLoading)
+    return (
+      <div className="admin-review-loading">
+        Checking authentication...
+      </div>
+    );
 
   if (!isAdmin) {
     return (
@@ -212,7 +237,8 @@ const AdminReview = () => {
     );
   }
 
-  if (loading) return <div className="admin-review-loading">Loading proposals...</div>;
+  if (loading)
+    return <div className="admin-review-loading">Loading proposals...</div>;
 
   return (
     <div className="admin-review-container">
@@ -231,20 +257,30 @@ const AdminReview = () => {
         </select>
       </div>
 
-      {fetchError && <div style={{ color: "crimson", marginBottom: 12 }}>Error fetching proposals: {fetchError}</div>}
+      {fetchError && (
+        <div style={{ color: "crimson", marginBottom: 12 }}>
+          Error fetching proposals: {fetchError}
+        </div>
+      )}
 
       {proposals.length === 0 ? (
         <div className="no-proposals">No proposals found.</div>
       ) : (
         <div className="proposals-grid">
           {proposals.map((p) => {
-            // explicit fields (exact labels you requested)
-            const name = pickField(p, ["name", "Name"]) || "—";
-            const description = pickField(p, ["description", "Description"]) || "—";
-            const category = pickField(p, ["category", "Category"]) || "—";
-            const tags = pickField(p, ["tags", "Tags"]) || "—";
-            const proposedBy = pickField(p, ["proposedBy", "Proposed by", "userEmail", "userEmail"]) || p.userEmail || p.userId || "—";
-            const createdAt = p.createdAt ? normalizeCreatedAt(p.createdAt) : "—";
+            const name = pickField(p, ["name"]) || "—";
+            const description =
+              pickField(p, ["description"]) || "—";
+            const category = pickField(p, ["category"]) || "—";
+            const tags = pickField(p, ["tags"]) || "—";
+            const proposedBy =
+              pickField(p, ["proposedBy", "userEmail"]) ||
+              p.userEmail ||
+              p.userId ||
+              "—";
+            const createdAt = p.createdAt
+              ? normalizeCreatedAt(p.createdAt)
+              : "—";
             const status = p.status || "pending";
             const rejectionReason = p.rejectionReason || "";
 
@@ -252,47 +288,134 @@ const AdminReview = () => {
               <div key={p.id} className="proposal-card">
                 <div className="proposal-header">
                   {editingId === p.id ? (
-                    <input value={editData.name} onChange={(e) => handleEditChange("name", e.target.value)} className="edit-input" placeholder="Name" />
+                    <input
+                      value={editData.name}
+                      onChange={(e) =>
+                        handleEditChange("name", e.target.value)
+                      }
+                      className="edit-input"
+                      placeholder="Name"
+                    />
                   ) : (
                     <h3 style={{ margin: 0 }}>{name}</h3>
                   )}
-                  <span className={`status-badge ${status}`}>{status}</span>
+                  <span className={`status-badge ${status}`}>
+                    {status}
+                  </span>
                 </div>
 
                 <div className="proposal-details" style={{ marginTop: 8 }}>
                   {editingId === p.id ? (
                     <>
                       <label>Description:</label>
-                      <textarea value={editData.description} onChange={(e) => handleEditChange("description", e.target.value)} />
+                      <textarea
+                        value={editData.description}
+                        onChange={(e) =>
+                          handleEditChange("description", e.target.value)
+                        }
+                      />
                       <label>Category:</label>
-                      <input value={editData.category} onChange={(e) => handleEditChange("category", e.target.value)} />
+                      <input
+                        value={editData.category}
+                        onChange={(e) =>
+                          handleEditChange("category", e.target.value)
+                        }
+                      />
                       <label>Tags:</label>
-                      <input value={editData.tags} onChange={(e) => handleEditChange("tags", e.target.value)} />
+                      <input
+                        value={editData.tags}
+                        onChange={(e) =>
+                          handleEditChange("tags", e.target.value)
+                        }
+                      />
                       <label>Image URL:</label>
-                      <input value={editData.imageUrl} onChange={(e) => handleEditChange("imageUrl", e.target.value)} />
+                      <input
+                        value={editData.imageUrl}
+                        onChange={(e) =>
+                          handleEditChange("imageUrl", e.target.value)
+                        }
+                      />
                     </>
                   ) : (
                     <>
-                      <p><strong>Description:</strong> {description}</p>
-                      <p><strong>Category:</strong> {category}</p>
-                      <p><strong>Tags:</strong> {tags}</p>
-                      <p><strong>Proposed by:</strong> {proposedBy}</p>
-                      <p><strong>Created At:</strong> {createdAt}</p>
+                      <p>
+                        <strong>Description:</strong> {description}
+                      </p>
+                      <p>
+                        <strong>Category:</strong> {category}
+                      </p>
+                      <p>
+                        <strong>Tags:</strong> {tags}
+                      </p>
+                      <p>
+                        <strong>Proposed by:</strong> {proposedBy}
+                      </p>
+                      <p>
+                        <strong>Created At:</strong> {createdAt}
+                      </p>
 
-                      {/* Explicit Approved/Rejected displays (hardcoded label as requested) */}
+                      {/* ✅ mini map preview */}
+                      {p.location &&
+                        typeof p.location.lat === "number" &&
+                        typeof p.location.lng === "number" && (
+                          <div
+                            className="mini-map"
+                            style={{
+                              marginTop: 10,
+                              borderRadius: 8,
+                              overflow: "hidden",
+                            }}
+                          >
+                            <MapContainer
+                              center={[p.location.lat, p.location.lng]}
+                              zoom={15}
+                              style={{
+                                height: "160px",
+                                width: "100%",
+                              }}
+                              scrollWheelZoom={false}
+                            >
+                              <TileLayer
+                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                attribution="&copy; OpenStreetMap contributors"
+                              />
+                              <Marker
+                                position={[p.location.lat, p.location.lng]}
+                              />
+                            </MapContainer>
+                          </div>
+                        )}
+
                       {status === "approved" && (
-                        <p><strong>Approved by:</strong> {currentUser?.email || APPROVER_LABEL}</p>
+                        <p>
+                          <strong>Approved by:</strong>{" "}
+                          {currentUser?.email || APPROVER_LABEL}
+                        </p>
                       )}
-
                       {status === "rejected" && (
                         <>
-                          <p><strong>Rejected by:</strong> {currentUser?.email || APPROVER_LABEL}</p>
-                          {rejectionReason && <p><strong>Rejection reason:</strong> {rejectionReason}</p>}
+                          <p>
+                            <strong>Rejected by:</strong>{" "}
+                            {currentUser?.email || APPROVER_LABEL}
+                          </p>
+                          {rejectionReason && (
+                            <p>
+                              <strong>Reason:</strong> {rejectionReason}
+                            </p>
+                          )}
                         </>
                       )}
-
-                      {/* image */}
-                      {p.imageUrl && <img src={p.imageUrl} alt={name} style={{ width: "100%", borderRadius: 8, marginTop: 8 }} />}
+                      {p.imageUrl && (
+                        <img
+                          src={p.imageUrl}
+                          alt={name}
+                          style={{
+                            width: "100%",
+                            borderRadius: 8,
+                            marginTop: 8,
+                          }}
+                        />
+                      )}
                     </>
                   )}
                 </div>
@@ -300,15 +423,45 @@ const AdminReview = () => {
                 <div className="proposal-actions" style={{ marginTop: 10 }}>
                   {editingId === p.id ? (
                     <>
-                      <button onClick={() => saveEdit(p.id)} className="btn btn-save">Save</button>
-                      <button onClick={() => setEditingId(null)} className="btn btn-cancel">Cancel</button>
+                      <button
+                        onClick={() => saveEdit(p.id)}
+                        className="btn btn-save"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => setEditingId(null)}
+                        className="btn btn-cancel"
+                      >
+                        Cancel
+                      </button>
                     </>
                   ) : (
                     <>
-                      <button onClick={() => handleApprove(p.id)} className="btn btn-approve">Approve</button>
-                      <button onClick={() => handleReject(p.id)} className="btn btn-reject">Reject</button>
-                      <button onClick={() => startEditing(p)} className="btn btn-edit">Edit</button>
-                      <button onClick={() => handleDelete(p.id)} className="btn btn-delete">Delete</button>
+                      <button
+                        onClick={() => handleApprove(p.id)}
+                        className="btn btn-approve"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => handleReject(p.id)}
+                        className="btn btn-reject"
+                      >
+                        Reject
+                      </button>
+                      <button
+                        onClick={() => startEditing(p)}
+                        className="btn btn-edit"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(p.id)}
+                        className="btn btn-delete"
+                      >
+                        Delete
+                      </button>
                     </>
                   )}
                 </div>
