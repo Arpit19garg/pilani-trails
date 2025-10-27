@@ -25,16 +25,19 @@ const ProposeLocation = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!currentUser)
       return setMessage({
         type: "error",
         text: "You must be logged in to propose a location.",
       });
+
     if (!formData.name || !formData.description || !formData.category)
       return setMessage({
         type: "error",
         text: "Please provide name, description, and category.",
       });
+
     if (!formData.location)
       return setMessage({
         type: "error",
@@ -42,20 +45,32 @@ const ProposeLocation = () => {
       });
 
     setLoading(true);
+    setMessage({ type: "", text: "" });
+
     try {
       await addDoc(collection(db, "locationProposals"), {
-        ...formData,
+        name: formData.name,
+        description: formData.description,
+        category: formData.category,
+        tags: formData.tags || "",
+        imageUrl: formData.imageUrl || "",
+        location: {
+          lat: formData.location.lat,
+          lng: formData.location.lng,
+        },
         status: "pending",
-        proposedBy:
-          currentUser.displayName || currentUser.email || currentUser.uid,
+        proposedBy: currentUser.email || currentUser.uid,
         userId: currentUser.uid,
         userEmail: currentUser.email || "",
         createdAt: serverTimestamp(),
       });
+
       setMessage({
         type: "success",
-        text: "Location proposal submitted successfully!",
+        text: "✅ Location proposal submitted successfully! Awaiting admin review.",
       });
+
+      // Reset form
       setFormData({
         name: "",
         description: "",
@@ -68,7 +83,7 @@ const ProposeLocation = () => {
       console.error("Error submitting proposal:", err);
       setMessage({
         type: "error",
-        text: "Failed to submit proposal. Please try again.",
+        text: `❌ Failed to submit proposal: ${err.message}`,
       });
     } finally {
       setLoading(false);
@@ -79,9 +94,11 @@ const ProposeLocation = () => {
     <div className="propose-location-container">
       <div className="propose-location-card">
         <h2>Propose a New Location</h2>
-        <p className="subtitle">Share a new trail or location with the community</p>
+        <p className="subtitle">Share a new trail or point of interest with the community</p>
 
-        {message.text && <div className={`message ${message.type}`}>{message.text}</div>}
+        {message.text && (
+          <div className={`message ${message.type}`}>{message.text}</div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -101,7 +118,7 @@ const ProposeLocation = () => {
               name="description"
               value={formData.description}
               onChange={handleChange}
-              placeholder="Describe the location"
+              placeholder="Describe the location briefly"
             />
           </div>
 
@@ -123,32 +140,35 @@ const ProposeLocation = () => {
             </select>
           </div>
 
-          {/* Drop-Pin Map */}
           <div className="form-group">
             <label>Pin Location *</label>
             <LocationPickerMap
               value={formData.location}
-              onChange={(val) => setFormData((p) => ({ ...p, location: val }))}
+              onChange={(val) =>
+                setFormData((prev) => ({ ...prev, location: val }))
+              }
             />
           </div>
 
           <div className="form-group">
-            <label>Tags</label>
+            <label>Tags (comma separated)</label>
             <input
+              type="text"
               name="tags"
               value={formData.tags}
               onChange={handleChange}
-              placeholder="comma separated"
+              placeholder="e.g. hiking, sunset, peaceful"
             />
           </div>
 
           <div className="form-group">
             <label>Image URL</label>
             <input
+              type="text"
               name="imageUrl"
               value={formData.imageUrl}
               onChange={handleChange}
-              placeholder="https://..."
+              placeholder="https://example.com/photo.jpg"
             />
           </div>
 
