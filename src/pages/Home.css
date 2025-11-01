@@ -1,15 +1,15 @@
 /* src/pages/Home.css */
-
 .home-grid {
   display: grid;
-  grid-template-columns: 340px 1fr;
+  grid-template-columns: 360px 1fr;
   height: 100vh;
   overflow: hidden;
   position: relative;
   font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background-color: #f8fafc;
 }
 
-/* translucent overlay for readability (keeps background image visible) */
+/* soft overlay for readability */
 .home-grid::before {
   content: "";
   position: absolute;
@@ -19,36 +19,38 @@
   z-index: 0;
 }
 
-/* ensure children sit above overlay */
+/* ensure children above overlay */
 .home-grid > * {
   position: relative;
   z-index: 1;
 }
 
-/* Sidebar container: glass card */
+/* Sidebar: glassy card */
 .sidebar-container {
-  margin: 16px;
-  border-radius: 12px;
+  margin: 18px;
+  border-radius: 16px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 32px);
-  background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(250,250,250,0.8));
-  box-shadow: 0 10px 30px rgba(2,6,23,0.12);
+  min-height: calc(100vh - 36px);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(245, 245, 245, 0.85));
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(10px);
+  transition: all 0.4s ease-in-out;
 }
 
-/* Map container: rounded card */
+/* Map section */
 .map-container {
-  margin: 16px;
-  border-radius: 12px;
+  margin: 18px;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(2,6,23,0.12);
-  background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(250,250,250,0.9));
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(250, 250, 250, 0.9));
 }
 
-/* Make the map take full height within its card */
+/* Map sizing */
 .map-container .leaflet-container {
-  height: calc(100vh - 48px) !important;
+  height: calc(100vh - 54px) !important;
   width: 100% !important;
 }
 
@@ -59,21 +61,16 @@
   align-items: center;
   height: 100vh;
   color: #111827;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 600;
+  background: linear-gradient(135deg, #f0f9ff, #fdf2f8);
 }
 
-/* Popup card improvements */
+/* Popup card */
 .leaflet-popup-content-wrapper {
-  border-radius: 10px !important;
+  border-radius: 12px !important;
   background: #ffffff !important;
-  box-shadow: 0 6px 18px rgba(13, 38, 76, 0.12);
-}
-
-.leaflet-popup-content {
-  margin: 0 !important;
-  padding: 0 !important;
-  font-family: "Inter", sans-serif;
+  box-shadow: 0 6px 20px rgba(13, 38, 76, 0.15);
 }
 
 .popup-card-inner {
@@ -97,19 +94,18 @@
 .popup-card-inner img {
   border-radius: 8px;
   margin-top: 6px;
-  margin-bottom: 8px;
   width: 100%;
   object-fit: cover;
 }
 
-/* small tooltip style if used */
+/* tooltip style */
 .popup-tooltip {
   font-weight: 600;
   font-size: 0.95rem;
   color: #0f172a;
 }
 
-/* Responsive */
+/* Responsiveness */
 @media (max-width: 900px) {
   .home-grid {
     grid-template-columns: 1fr;
@@ -117,15 +113,15 @@
     height: auto;
   }
   .sidebar-container {
-    margin: 8px;
-    border-radius: 10px;
+    margin: 12px;
+    border-radius: 14px;
     min-height: auto;
   }
   .map-container {
-    margin: 8px;
-    border-radius: 10px;
+    margin: 12px;
+    border-radius: 14px;
   }
   .map-container .leaflet-container {
-    height: 60vh !important;
+    height: 65vh !important;
   }
 }
