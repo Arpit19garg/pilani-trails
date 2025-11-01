@@ -1,51 +1,55 @@
 /* src/pages/Home.css */
 
-/* ---- Base layout ---- */
 .home-grid {
   display: grid;
   grid-template-columns: 340px 1fr;
   height: 100vh;
   overflow: hidden;
-  background-image: url("/assets/bg.jpg"); /* put your image in public/assets/bg.jpg */
-  background-size: cover;
-  background-position: center;
   position: relative;
-  font-family: "Inter", sans-serif;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
 }
 
-/* translucent overlay for readability */
+/* translucent overlay for readability (keeps background image visible) */
 .home-grid::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(6px);
   z-index: 0;
 }
 
-/* Sidebar + Map layering */
+/* ensure children sit above overlay */
 .home-grid > * {
   position: relative;
   z-index: 1;
 }
 
-/* Sidebar glass look */
+/* Sidebar container: glass card */
 .sidebar-container {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(12px);
-  border-radius: 12px;
-  margin: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  overflow-y: auto;
-  transition: all 0.3s ease;
-}
-
-/* Map container */
-.map-container {
-  margin: 12px;
+  margin: 16px;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 32px);
+  background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(250,250,250,0.8));
+  box-shadow: 0 10px 30px rgba(2,6,23,0.12);
+}
+
+/* Map container: rounded card */
+.map-container {
+  margin: 16px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(2,6,23,0.12);
+  background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(250,250,250,0.9));
+}
+
+/* Make the map take full height within its card */
+.map-container .leaflet-container {
+  height: calc(100vh - 48px) !important;
+  width: 100% !important;
 }
 
 /* Loading screen */
@@ -54,16 +58,22 @@
   justify-content: center;
   align-items: center;
   height: 100vh;
-  color: #222;
+  color: #111827;
   font-size: 1.1rem;
-  background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+  font-weight: 600;
 }
 
 /* Popup card improvements */
 .leaflet-popup-content-wrapper {
   border-radius: 10px !important;
   background: #ffffff !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 18px rgba(13, 38, 76, 0.12);
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  padding: 0 !important;
+  font-family: "Inter", sans-serif;
 }
 
 .popup-card-inner {
@@ -78,9 +88,9 @@
 }
 
 .popup-card-inner p {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   margin: 4px 0;
-  line-height: 1.3;
+  line-height: 1.35;
   color: #444;
 }
 
@@ -92,17 +102,30 @@
   object-fit: cover;
 }
 
-/* Responsive layout */
-@media (max-width: 768px) {
+/* small tooltip style if used */
+.popup-tooltip {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
   .home-grid {
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
+    height: auto;
   }
   .sidebar-container {
-    margin-bottom: 0;
-    border-radius: 0;
+    margin: 8px;
+    border-radius: 10px;
+    min-height: auto;
   }
   .map-container {
-    border-radius: 0;
+    margin: 8px;
+    border-radius: 10px;
+  }
+  .map-container .leaflet-container {
+    height: 60vh !important;
   }
 }
