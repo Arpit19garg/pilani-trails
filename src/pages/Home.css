@@ -1,44 +1,74 @@
+/* src/pages/Home.css */
+
+/* ---- Base layout ---- */
 .home-grid {
   display: grid;
-  grid-template-columns: 320px 1fr;
-  height: calc(100vh - 70px);
-  background-color: #f8fafc;
+  grid-template-columns: 340px 1fr;
+  height: 100vh;
+  overflow: hidden;
+  background-image: url("/assets/bg.jpg"); /* put your image in public/assets/bg.jpg */
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  font-family: "Inter", sans-serif;
 }
 
+/* translucent overlay for readability */
+.home-grid::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px);
+  z-index: 0;
+}
+
+/* Sidebar + Map layering */
+.home-grid > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Sidebar glass look */
+.sidebar-container {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  margin: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+  transition: all 0.3s ease;
+}
+
+/* Map container */
+.map-container {
+  margin: 12px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+/* Loading screen */
 .loading-screen {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  color: #333;
-  font-size: 1.2rem;
-  font-weight: 500;
+  color: #222;
+  font-size: 1.1rem;
+  background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
 }
 
-/* Responsive for smaller screens */
-@media (max-width: 768px) {
-  .home-grid {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
-  }
-}
-
-/* Optional: Map popup styles if you use custom cards */
+/* Popup card improvements */
 .leaflet-popup-content-wrapper {
-  border-radius: 12px !important;
+  border-radius: 10px !important;
   background: #ffffff !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.leaflet-popup-content {
-  margin: 0 !important;
-  padding: 0 !important;
-  font-family: "Inter", sans-serif;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
 }
 
 .popup-card-inner {
   padding: 12px 14px;
-  color: #222;
+  color: #111;
 }
 
 .popup-card-inner h4 {
@@ -51,7 +81,7 @@
   font-size: 0.9rem;
   margin: 4px 0;
   line-height: 1.3;
-  color: #555;
+  color: #444;
 }
 
 .popup-card-inner img {
@@ -60,4 +90,19 @@
   margin-bottom: 8px;
   width: 100%;
   object-fit: cover;
+}
+
+/* Responsive layout */
+@media (max-width: 768px) {
+  .home-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  .sidebar-container {
+    margin-bottom: 0;
+    border-radius: 0;
+  }
+  .map-container {
+    border-radius: 0;
+  }
 }
